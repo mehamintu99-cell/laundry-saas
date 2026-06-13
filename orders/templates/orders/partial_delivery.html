@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>
+
+        🚚 Partial Delivery
+
+        <br>
+
+        Order #{{ order.id }}
+
+    </h2>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <table class="table table-bordered">
+
+            <thead>
+
+                <tr>
+
+                    <th>Service</th>
+                    <th>Ordered</th>
+                    <th>Delivered</th>
+                    <th>Pending</th>
+                    <th>Deliver Now</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for item in items %}
+
+                <tr>
+
+                    <td>
+                        {{ item.service.name }}
+                    </td>
+
+                    <td>
+                        {{ item.quantity }}
+                    </td>
+
+                    <td>
+                        {{ item.delivered_quantity }}
+                    </td>
+
+                    <td>
+                        {{ item.pending_quantity }}
+                    </td>
+
+                    <td>
+
+                        <input
+                            type="number"
+                            min="0"
+                            max="{{ item.pending_quantity }}"
+                            name="item_{{ item.id }}"
+                            value="0"
+                            class="form-control">
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        <button
+            type="submit"
+            class="btn btn-success">
+
+            Save Delivery
+
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

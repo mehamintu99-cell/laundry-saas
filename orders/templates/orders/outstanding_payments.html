@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Outstanding Payments</h2>
+
+<table class="table table-bordered">
+
+    <thead>
+
+        <tr>
+
+            <th>Order</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Paid</th>
+            <th>Balance</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for order in orders %}
+
+        <tr>
+
+            <td>
+
+                <a href="/order/{{ order.id }}/">
+
+                    {{ order.id }}
+
+                </a>
+
+            </td>
+
+            <td>
+                {{ order.customer.name }}
+            </td>
+
+            <td>
+                {{ order.total_amount }}
+            </td>
+
+            <td>
+                {{ order.amount_paid }}
+            </td>
+
+            <td>
+                {{ order.balance }}
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+<div class="alert alert-danger">
+
+    <strong>
+        Total Outstanding:
+    </strong>
+
+    {{ total_outstanding }} OMR
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>Customer Outstanding Report</h2>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Outstanding</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for row in report %}
+
+            <tr>
+
+                <td>
+                    <a href="/customer-search/?phone={{ row.customer.phone }}">
+                        {{ row.customer.name }}
+                    </a>
+                </td>
+
+                <td>
+                    {{ row.customer.phone }}
+                </td>
+
+                <td>
+                    {{ row.outstanding|floatformat:3 }}
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="3">
+                    No outstanding balances
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    <div class="alert alert-danger">
+
+        <strong>
+            Total Outstanding:
+        </strong>
+
+        {{ total_outstanding|floatformat:3 }} OMR
+
+    </div>
+
+</div>
+
+{% endblock %}

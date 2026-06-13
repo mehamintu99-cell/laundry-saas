@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+```
+<h2>{{ customer.name }}</h2>
+
+<p>
+    <strong>Phone:</strong>
+    {{ customer.phone }}
+</p>
+<a href="/customer/edit/{{ customer.id }}/"
+   class="btn btn-primary mb-3">
+
+    ✏ Edit Customer
+
+</a>
+
+<a href="https://web.whatsapp.com/send?phone=968{{ customer.phone }}"
+   target="_blank"
+   class="btn btn-success mb-3">
+
+    📱 WhatsApp Customer
+
+</a>
+
+<p>
+    <strong>Last Visit:</strong>
+
+    {% if last_visit %}
+        {{ last_visit.created_at|date:"d M Y" }}
+    {% else %}
+        No orders yet
+    {% endif %}
+</p>
+
+<hr>
+
+<div class="row">
+
+    <div class="col-md-4">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body text-center">
+
+                <h5>Total Orders</h5>
+
+                <h2>{{ total_orders }}</h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-4">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body text-center">
+
+                <h5>Total Spent</h5>
+
+                <h2>{{ total_spent|floatformat:3 }}</h2>
+
+                <small>OMR</small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-4">
+
+        <div class="card border-danger shadow-sm">
+
+            <div class="card-body text-center">
+
+                <h5>Outstanding</h5>
+
+                <h2>{{ outstanding_amount|floatformat:3 }}</h2>
+
+                <small>OMR</small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<h4 class="mt-4">
+    Order History
+</h4>
+
+<table class="table table-bordered table-striped">
+
+    <thead class="table-light">
+
+        <tr>
+
+            <th>Order #</th>
+            <th>Order Status</th>
+	<th>Payment Status</th>
+            <th>Amount</th>
+	<th>Balance</th>
+            <th>Date</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for order in all_orders %}
+
+        <tr>
+
+            <td>
+
+                <a href="/order/{{ order.id }}/">
+
+                    #{{ order.id }}
+
+                </a>
+
+            </td>
+
+            <td>
+
+                {{ order.get_status_display }}
+
+            </td>
+<td>
+
+    {% if order.payment_status == 'paid' %}
+
+        <span class="badge bg-success">
+            Paid
+        </span>
+
+    {% elif order.payment_status == 'partial' %}
+
+        <span class="badge bg-warning text-dark">
+            Partial
+        </span>
+
+    {% else %}
+
+        <span class="badge bg-danger">
+            Unpaid
+        </span>
+
+    {% endif %}
+
+</td>
+
+            <td>
+
+                {{ order.total_amount|floatformat:3 }}
+
+            </td>
+    <td>
+
+        {{ order.balance|floatformat:3 }}
+
+    </td>
+
+            <td>
+
+                {{ order.created_at|date:"d M Y" }}
+
+            </td>
+
+        </tr>
+
+    {% empty %}
+
+        <tr>
+
+            <td colspan="4">
+
+                No orders found
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+<a href="/customers/"
+   class="btn btn-secondary">
+
+    ← Back
+
+</a>
+```
+
+</div>
+
+{% endblock %}

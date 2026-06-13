@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+```
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <h2>
+        📅 Orders Due Today
+    </h2>
+
+    <a href="/"
+       class="btn btn-secondary">
+
+        ← Dashboard
+
+    </a>
+
+</div>
+
+<div class="card shadow">
+
+    <div class="card-body">
+
+        {% if orders %}
+
+        <table class="table table-striped table-bordered">
+
+            <thead class="table-info">
+
+                <tr>
+
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Total Amount</th>
+                    <th>Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for order in orders %}
+
+                <tr>
+
+                    <td>#{{ order.id }}</td>
+
+                    <td>{{ order.customer.name }}</td>
+
+                    <td>{{ order.customer.phone }}</td>
+
+                    <td>{{ order.get_status_display }}</td>
+
+                    <td>{{ order.total_amount }} OMR</td>
+
+                    <td>
+
+                        <a href="/order/{{ order.id }}/"
+                           class="btn btn-primary btn-sm">
+
+                            View
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <div class="alert alert-success">
+
+            🎉 No orders due today.
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+```
+
+</div>
+
+{% endblock %}

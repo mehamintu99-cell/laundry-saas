@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+```
+<h2 class="mb-4">
+    📊 Reports
+</h2>
+
+<!-- Report Navigation -->
+
+<div class="btn-group mb-4">
+<a href="/daily-closing/"
+   class="btn btn-dark">
+
+   📅 Daily Closing
+
+</a>
+
+
+<a href="/payment-report/"
+   class="btn btn-success">
+
+   💰 Payment Collection
+
+</a>
+    <a href="/reports/"
+       class="btn btn-primary">
+
+        Service Activity
+
+    </a>
+
+    <a href="/customer-outstanding/"
+       class="btn btn-danger">
+
+        Outstanding Customers
+
+    </a>
+
+    <a href="/outstanding-payments/"
+       class="btn btn-warning">
+
+        Outstanding Orders
+
+    </a>
+<a href="/service-summary/"
+   class="btn btn-info">
+
+    Service Summary
+
+</a>
+<a href="/expense-report/"
+   class="btn btn-warning">
+
+   Expense Report
+
+</a>
+
+<a href="/profit-report/"
+   class="btn btn-success">
+
+   Profit Report
+
+</a>
+
+</div>
+
+<!-- Filters -->
+
+<div class="card shadow mb-4">
+
+    <div class="card-body">
+
+        <h5 class="mb-3">
+            Service Activity Report
+        </h5>
+
+        <form method="GET">
+
+            <div class="row">
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        From Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="from_date"
+                        value="{{ from_date }}"
+                        class="form-control">
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        To Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="to_date"
+                        value="{{ to_date }}"
+                        class="form-control">
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Customer
+                    </label>
+
+                    <select
+                        name="customer"
+                        class="form-control">
+
+                        <option value="all">
+                            All Customers
+                        </option>
+
+                        {% for customer in customers %}
+
+                        <option
+                            value="{{ customer.id }}"
+                            {% if customer.id|stringformat:"s" == customer_id %}
+                            selected
+                            {% endif %}>
+
+                            {{ customer.name }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary me-2">
+
+                        Generate
+
+                    </button>
+
+                    <a href="?from_date={{ from_date }}&to_date={{ to_date }}&customer={{ customer_id }}&export=excel"
+                       class="btn btn-success">
+
+                        📊 Export
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- Summary Cards -->
+
+{% if report_items %}
+
+<div class="row mb-4">
+
+    <div class="col-md-3">
+
+        <div class="card text-bg-success">
+
+            <div class="card-body">
+
+                <h6>Total Revenue</h6>
+
+                <h4>
+                    {{ total_revenue|floatformat:3 }} OMR
+                </h4>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card text-bg-primary">
+
+            <div class="card-body">
+
+                <h6>Services</h6>
+
+                <h4>
+                    {{ report_items|length }}
+                </h4>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Report Table -->
+
+<div class="card shadow">
+
+    <div class="card-body">
+
+        <table class="table table-striped table-bordered">
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th>Date</th>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Category</th>
+                    <th>Service</th>
+                    <th>Qty</th>
+                    <th>Amount</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for item in report_items %}
+
+                <tr>
+
+                    <td>
+                        {{ item.order.created_at|date:"d-M-Y" }}
+                    </td>
+
+                    <td>
+
+                        <a href="/order/{{ item.order.id }}/">
+
+                            #{{ item.order.id }}
+
+                        </a>
+
+                    </td>
+
+                    <td>
+                        {{ item.order.customer.name }}
+                    </td>
+
+                    <td>
+                        {{ item.service.category.name }}
+                    </td>
+
+                    <td>
+                        {{ item.service.name }}
+                    </td>
+
+                    <td>
+                        {{ item.quantity }}
+                    </td>
+
+                    <td>
+                        {{ item.line_total|floatformat:3 }}
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endif %}
+```
+
+</div>
+
+{% endblock %}

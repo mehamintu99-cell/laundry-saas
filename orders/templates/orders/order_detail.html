@@ -1,0 +1,471 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<style>
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-body">
+
+            <a href="/orders/" class="btn btn-secondary mb-3 no-print">
+                ← Back to Orders
+            </a>
+
+            <!-- Shop Details -->
+
+            <div class="text-center mb-4">
+
+                <h3>{{ shop.name }}</h3>
+
+                {% if shop.phone %}
+                    <div>{{ shop.phone }}</div>
+                {% endif %}
+
+                {% if shop.address %}
+                    <div>{{ shop.address }}</div>
+                {% endif %}
+
+            </div>
+
+            <hr>
+
+            <!-- Order Details -->
+
+            <h2>Order #{{ order.id }}</h2>
+
+            <p>
+                <strong>Customer:</strong>
+                {{ order.customer.name }}
+            </p>
+
+            <p>
+                <strong>Phone:</strong>
+                {{ order.customer.phone }}
+            </p>
+
+            <p>
+                <strong>Order Date:</strong>
+                {{ order.created_at|date:"d M Y" }}
+            </p>
+
+            <p>
+                <strong>Delivery Date:</strong>
+                {{ order.delivery_date }}
+            </p>
+
+            <p>
+                <strong>Status:</strong>
+                {{ order.get_status_display }}
+            </p>
+<div class="alert alert-warning">
+
+    <strong>Notes</strong><br>
+
+    {% if order.notes %}
+        {{ order.notes|linebreaks }}
+    {% else %}
+        No notes added
+    {% endif %}
+
+</div>
+
+            <hr>
+
+            <!-- Payment Details -->
+
+            <h4>💰 Payment Details</h4>
+
+            <table class="table table-bordered">
+
+                <tr>
+                    <th>Total Amount</th>
+                    <td>{{ order.total_amount }} OMR</td>
+                </tr>
+
+                <tr>
+                    <th>Amount Paid</th>
+                    <td>{{ order.amount_paid }} OMR</td>
+                </tr>
+
+                <tr>
+                    <th>Balance</th>
+                    <td>{{ order.balance }} OMR</td>
+                </tr>
+
+                <tr>
+                    <th>Payment Status</th>
+                    <td>{{ order.payment_status }}</td>
+                </tr>
+
+            </table>
+<h4 class="mt-4">
+
+    Payment History
+
+</h4>
+
+{% if payments %}
+
+<table class="table table-bordered">
+
+    <thead class="table-light">
+
+        <tr>
+
+            <th>Date</th>
+            <th>Amount</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for payment in payments %}
+
+        <tr>
+
+            <td>
+
+                {{ payment.payment_date|date:"d M Y H:i" }}
+
+            </td>
+
+            <td>
+
+                {{ payment.amount|floatformat:3 }} OMR
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+<div class="alert alert-success">
+
+    Total Received:
+    {{ order.amount_paid|floatformat:3 }} OMR
+
+</div>
+
+{% else %}
+
+<div class="alert alert-warning">
+
+    No payments received yet.
+
+</div>
+
+{% endif %}
+
+            <div class="no-print mb-3">
+
+                <a href="/order/{{ order.id }}/payment/"
+                   class="btn btn-success">
+
+                    💰 Receive Payment
+
+                </a>
+
+            </div>
+
+            <hr>
+
+            <!-- Action Buttons -->
+
+            <div class="no-print mb-4">
+
+                <a href="/order/{{ order.id }}/status/ready/"
+                   class="btn btn-success">
+
+                    Order Ready
+
+                </a>
+<a href="/order/{{ order.id }}/deliver/"
+   class="btn btn-warning">
+
+   🚚 Partial Delivery
+
+</a>
+
+                <a href="/order/{{ order.id }}/status/picked/"
+                   class="btn btn-secondary">
+
+                    Mark Delivered
+
+                </a>
+
+                <button onclick="window.print()"
+                        class="btn btn-primary">
+
+                    🖨 Print Receipt
+
+                </button>
+<a href="/order/{{ order.id }}/notes/"
+   class="btn btn-info">
+
+    📝 Edit Notes
+
+</a>
+
+                {% if order.status == 'ready' %}
+
+                <a
+                    href="https://web.whatsapp.com/send?phone=968{{ order.customer.phone }}&text=Dear%20{{ order.customer.name }},%20your%20laundry%20order%20%23{{ order.id }}%20is%20ready%20for%20collection.%20Total%20Amount:%20{{ order.total_amount }}%20OMR."
+                    target="_blank"
+                    class="btn btn-success">
+
+                    📱 Send WhatsApp
+
+                </a>
+
+                {% endif %}
+
+            </div>
+
+            <!-- Items -->
+
+            <h4>Items</h4>
+
+            <table class="table table-bordered">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Category</th>
+                        <th>Service</th>
+                        <th>Qty</th>
+<th>Delivered</th>
+    <th>Pending</th>
+                        <th>Price</th>
+                        <th>Amount</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for item in items %}
+
+                    <tr>
+
+                        <td>
+                            {{ item.service.category.name }}
+                        </td>
+
+                        <td>
+                            {{ item.service.name }}
+                        </td>
+
+                        <td>
+                            {{ item.quantity }}
+                        </td>
+<td>
+
+    {{ item.delivered_quantity }}
+
+</td>
+
+<td>
+
+    {{ item.pending_quantity }}
+
+</td>
+
+                        <td>
+                            {{ item.price }}
+                        </td>
+
+                        <td>
+                            {{ item.line_total }}
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            <h4 class="text-end">
+
+                Total:
+                {{ order.total_amount }} OMR
+
+            </h4>
+
+            <hr>
+
+            <div class="text-center text-muted">
+
+                {{ shop.receipt_footer }}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- WhatsApp Receipt Modal -->
+
+<div class="modal fade"
+     id="whatsappModal"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-success text-white">
+
+                <h5 class="modal-title">
+
+{% if is_new_order %}
+
+✅ Order Saved Successfully
+
+{% elif is_ready_order %}
+
+✅ Order Marked as Ready
+
+{% endif %}
+
+</h5>
+
+            </div>
+
+            <div class="modal-body">
+
+                <p>
+                    <strong>Order No:</strong>
+                    {{ order.id }}
+                </p>
+                <p>
+                    <strong>Customer:</strong>
+                    {{ order.customer.name }}
+                </p>
+
+                <p>
+                    <strong>Total Amount:</strong>
+                    {{ order.total_amount }} OMR
+                </p>
+                <hr>
+                <p>
+                    {% if is_new_order %}
+
+Send WhatsApp receipt to customer?
+
+{% elif is_ready_order %}
+
+Send WhatsApp notification to customer?
+
+{% endif %}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+                    Later
+                </button>
+
+                <a
+href="{% if is_new_order %}
+
+{{ whatsapp_url|safe }}
+
+{% else %}
+
+{{ ready_whatsapp_url|safe }}
+
+{% endif %}"
+target="_blank"
+class="btn btn-success"
+onclick="
+
+        var modal =
+        bootstrap.Modal.getInstance(
+        document.getElementById(
+        'whatsappModal'
+        ));
+
+        modal.hide();
+
+        document.body.classList.remove(
+        'modal-open'
+        );
+
+        document.querySelectorAll(
+        '.modal-backdrop'
+        ).forEach(
+        el => el.remove()
+        );
+
+        ">
+
+        📱 Send WhatsApp
+
+</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% if is_new_order or is_ready_order %}
+
+<script>
+
+window.onload = function() {
+
+    var modal = new bootstrap.Modal(
+
+        document.getElementById(
+
+            'whatsappModal'
+
+        )
+
+    );
+
+    modal.show();
+
+    window.history.replaceState(
+
+        {},
+
+        document.title,
+
+        window.location.pathname
+
+    );
+
+}
+
+</script>
+
+{% endif %}
+
+{% endblock %}

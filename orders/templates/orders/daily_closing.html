@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>
+        📅 Daily Closing Report
+    </h2>
+
+    <div class="card mb-4">
+
+        <div class="card-body">
+
+            <form method="GET">
+
+                <div class="row">
+
+                    <div class="col-md-4">
+
+                        <label>Date</label>
+
+                        <input
+                            type="date"
+                            name="date"
+                            value="{{ selected_date|date:'Y-m-d' }}"
+                            class="form-control">
+
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end">
+
+                        <button class="btn btn-primary">
+
+                            Generate Report
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card text-bg-primary">
+
+                <div class="card-body">
+
+                    <h5>Orders Received</h5>
+
+                    <h2>{{ orders_received }}</h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card text-bg-success">
+
+                <div class="card-body">
+
+                    <h5>Orders Ready</h5>
+
+                    <h2>{{ orders_ready }}</h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card text-bg-secondary">
+
+                <div class="card-body">
+
+                    <h5>Orders Picked Up</h5>
+
+                    <h2>{{ orders_picked }}</h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <table class="table table-bordered">
+
+        <tr>
+            <th>Today's Orders Value:</th>
+            <td>{{ revenue_generated|floatformat:3 }} OMR</td>
+        </tr>
+
+        <tr>
+            <th>Payments Collected Today</th>
+            <td>{{ payments_collected|floatformat:3 }} OMR</td>
+        </tr>
+
+        <tr>
+    <th>Current Outstanding Balance</th>
+    <td>{{ outstanding_balance|floatformat:3 }} OMR</td>
+</tr>
+
+    </table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-body">
+
+            <h2>
+                ⚙ Shop Settings
+            </h2>
+{% if messages %}
+
+    {% for message in messages %}
+
+        <div class="alert alert-success alert-dismissible fade show">
+
+            {{ message }}
+
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+            </button>
+
+        </div>
+
+    {% endfor %}
+
+{% endif %}
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label>Laundry Name</label>
+                    <input
+                        type="text"
+                        name="name"
+                        value="{{ shop.name }}"
+                        class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Phone</label>
+                    <input
+                        type="text"
+                        name="phone"
+                        value="{{ shop.phone }}"
+                        class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Address</label>
+                    <textarea
+                        name="address"
+                        class="form-control">{{ shop.address }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label>Receipt Footer</label>
+                    <textarea
+                        name="receipt_footer"
+                        class="form-control">{{ shop.receipt_footer }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label>WhatsApp Template</label>
+                    <textarea
+                        name="whatsapp_template"
+                        class="form-control"
+                        rows="5">{{ shop.whatsapp_template }}</textarea>
+                </div>
+<div class="mb-3">
+
+    <label>Default Delivery Days</label>
+
+    <input
+        type="number"
+        name="default_delivery_days"
+        value="{{ shop.default_delivery_days }}"
+        class="form-control">
+
+</div>
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    Save Settings
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>Profit Report</h2>
+
+<form method="GET" class="row mb-4">
+
+<div class="col-md-3">
+<label>From Date</label>
+<input type="date"
+       name="from_date"
+       value="{{ from_date }}"
+       class="form-control">
+</div>
+
+<div class="col-md-3">
+<label>To Date</label>
+<input type="date"
+       name="to_date"
+       value="{{ to_date }}"
+       class="form-control">
+</div>
+
+<div class="col-md-2 d-flex align-items-end">
+<button class="btn btn-primary">
+Generate Report
+</button>
+</div>
+
+</form>
+
+<div class="card">
+
+<div class="card-body">
+
+<h4>
+Revenue:
+{{ revenue|floatformat:3 }} OMR
+</h4>
+
+<h4>
+Expenses:
+{{ expenses|floatformat:3 }} OMR
+</h4>
+
+<hr>
+
+<h3>
+
+Profit:
+{{ profit|floatformat:3 }} OMR
+
+</h3>
+<h4 class="text-warning">
+
+Outstanding Amount:
+{{ outstanding|floatformat:3 }} OMR
+
+</h4>
+<hr>
+
+<h3 class="text-success">
+
+Cash Adjusted Profit:
+{{ cash_profit|floatformat:3 }} OMR
+
+</h3>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

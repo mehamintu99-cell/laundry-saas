@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+```
+<h2 class="mb-4">
+    📊 Dashboard
+</h2>
+
+<!-- ROW 1 -->
+
+<div class="row">
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <a href="/reports/?from_date={{ today_date }}&to_date={{ today_date }}"
+           class="text-decoration-none text-dark">
+
+            <div class="card border-success shadow-sm">
+                <div class="card-body text-center">
+                    <h6>Today's Order Value</h6>
+                    <h6>{{ today_revenue|floatformat:3 }}</h6>
+                    <small>OMR</small>
+                </div>
+            </div>
+
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <a href="/payment-report/?today=1"
+           class="text-decoration-none text-dark">
+
+            <div class="card border-primary shadow-sm">
+                <div class="card-body text-center">
+                    <h6>Today's Collections</h6>
+                    <h6>{{ today_collections|floatformat:3 }}</h6>
+                    <small>OMR</small>
+                </div>
+            </div>
+
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <a href="/orders-due-today/"
+           class="text-decoration-none">
+
+            <div class="card text-bg-info shadow-sm">
+                <div class="card-body text-center">
+                    <h6>Orders Due Today</h6>
+                    <h2>{{ today_orders }}</h2>
+                </div>
+            </div>
+
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <a href="/overdue-orders/"
+           class="text-decoration-none">
+
+            <div class="card text-bg-danger shadow-sm">
+                <div class="card-body text-center">
+                    <h6>Overdue Alert</h6>
+                    <h2>{{ overdue_orders }}</h2>
+                </div>
+            </div>
+
+        </a>
+    </div>
+
+</div>
+
+<!-- ROW 2 -->
+
+<div class="row">
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <a href="/orders/"
+           class="text-decoration-none">
+
+            <div class="card text-bg-primary shadow-sm">
+                <div class="card-body text-center">
+                    <h6>Total Orders</h6>
+                    <h2>{{ total_orders }}</h2>
+                </div>
+            </div>
+
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <a href="/pending-orders/"
+           class="text-decoration-none">
+
+            <div class="card text-bg-warning shadow-sm">
+                <div class="card-body text-center">
+                    <h6>Pending Orders</h6>
+                    <h2>{{ pending_orders }}</h2>
+                </div>
+            </div>
+
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <a href="/ready-orders/"
+           class="text-decoration-none">
+
+            <div class="card text-bg-success shadow-sm">
+                <div class="card-body text-center">
+                    <h6>Ready Orders</h6>
+                    <h2>{{ ready_orders }}</h2>
+                </div>
+            </div>
+
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <a href="/orders/?status=picked"
+           class="text-decoration-none">
+
+            <div class="card text-bg-secondary shadow-sm">
+                <div class="card-body text-center">
+                    <h6>Delivered Orders</h6>
+                    <h2>{{ picked_orders }}</h2>
+                </div>
+            </div>
+
+        </a>
+    </div>
+
+</div>
+
+<!-- ROW 3 -->
+
+<div class="row">
+
+    <div class="col-lg-4 mb-3">
+
+        <a href="/customer-outstanding/"
+           class="text-decoration-none">
+
+            <div class="card bg-danger text-white shadow">
+                <div class="card-body text-center">
+                    <h5>Outstanding Amount</h5>
+                    <h6>{{ outstanding_amount|floatformat:3 }}</h6>
+                    <small>OMR</small>
+                </div>
+            </div>
+
+        </a>
+
+    </div>
+
+    <div class="col-lg-4 mb-3">
+
+        <a href="/reports/?from_date={{ month_start }}&to_date={{ today_date }}"
+           class="text-decoration-none text-dark">
+
+            <div class="card border-primary shadow-sm">
+                <div class="card-body text-center">
+                    <h5>Monthly Order Value</h5>
+                    <h6>{{ month_revenue|floatformat:3 }}</h6>
+                    <small>OMR</small>
+                </div>
+            </div>
+
+        </a>
+
+    </div>
+
+    <div class="col-lg-4 mb-3">
+
+        <a href="/customers/"
+           class="text-decoration-none text-dark">
+
+            <div class="card border-secondary shadow-sm">
+                <div class="card-body text-center">
+                    <h5>Total Customers</h5>
+                    <h3>{{ total_customers }}</h3>
+                </div>
+            </div>
+
+        </a>
+
+    </div>
+
+</div>
+
+<!-- QUICK ACTIONS -->
+
+<div class="card shadow-sm mt-3">
+
+    <div class="card-body">
+
+        <h4 class="mb-3">
+            Quick Actions
+        </h4>
+
+        <div class="row">
+
+            <div class="col-lg-3 col-md-6 mb-2">
+                <a href="/new-order/"
+                   class="btn btn-primary w-100">
+                    ➕ New Order
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-2">
+                <a href="/orders/"
+                   class="btn btn-success w-100">
+                    📦 Orders
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-2">
+                <a href="/customers/"
+                   class="btn btn-info w-100">
+                    👥 Customers
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-2">
+                <a href="/reports/"
+                   class="btn btn-dark w-100">
+                    📊 Reports
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+```
+
+</div>
+
+{% endblock %}

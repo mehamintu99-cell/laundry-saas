@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>New Laundry Order</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body{
+            background-color:#f8f9fa;
+        }
+
+        .category-header{
+            background:#0d6efd;
+            color:white;
+            padding:8px;
+            border-radius:5px;
+            margin-top:15px;
+            margin-bottom:10px;
+        }
+
+        .service-row{
+            border-bottom:1px solid #eee;
+            padding-bottom:8px;
+            margin-bottom:8px;
+        }
+    </style>
+</head>
+
+<body>
+<!-- Navigation Bar -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-body">
+
+            <h2 class="text-center mb-4">
+                🧾 New Laundry Order
+            </h2>
+{% if error %}
+
+<div class="alert alert-danger">
+
+    {{ error }}
+
+</div>
+
+{% endif %}
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <!-- DELIVERY DATE -->
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Delivery Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="delivery_date"
+			value="{{ default_date|date:'Y-m-d' }}"
+                        class="form-control"
+                        required>
+
+                </div>
+
+                <!-- CUSTOMER -->
+
+                <div class="mb-3">
+
+    <label class="form-label">
+        <strong>Phone Number</strong>
+    </label>
+
+    <input
+        type="text"
+id="phone"
+        name="phone"
+        class="form-control"
+        required>
+
+</div>
+
+<div class="mb-4">
+
+    <label class="form-label">
+        <strong>Customer Name</strong>
+    </label>
+
+    <input
+        type="text"
+id="customer_name"
+        name="customer_name"
+        class="form-control"
+        required>
+
+</div>
+                <!-- SERVICES -->
+
+                <h4 class="mb-3">
+                    Services
+                </h4>
+
+                {% for category in categories %}
+
+                    <div class="category-header">
+                        {{ category.name }}
+                    </div>
+
+                    {% for item in category.serviceitem_set.all %}
+
+                    <div class="row service-row align-items-center">
+
+                        <div class="col-5">
+                            {{ item.name }}
+                        </div>
+
+                        <div class="col-3">
+                            {{ item.price }} OMR
+                        </div>
+
+                        <div class="col-4">
+
+                            <input
+                                type="number"
+                                min="0"
+                                value="0"
+                                name="item_{{ item.id }}"
+                                class="form-control">
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                {% empty %}
+
+                    <div class="alert alert-warning">
+                        No services found.
+                    </div>
+
+                {% endfor %}
+
+                <!-- TOTAL -->
+
+                <div class="card mt-4 mb-3">
+
+                    <div class="card-body">
+
+                        <h5>
+                            Total:
+                            <span id="totalAmount">
+                                0.000
+                            </span>
+                            OMR
+                        </h5>
+
+                    </div>
+
+                </div>
+
+                <!-- SAVE -->
+
+                <button
+                    type="submit"
+                    class="btn btn-primary w-100">
+
+                    💾 Save Order
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+function calculateTotal(){
+
+    let total = 0;
+
+    {% for category in categories %}
+        {% for item in category.serviceitem_set.all %}
+
+        let qty{{ item.id }} =
+            parseFloat(
+                document.getElementsByName(
+                    "item_{{ item.id }}"
+                )[0].value
+            ) || 0;
+
+        total += qty{{ item.id }} * {{ item.price }};
+
+        {% endfor %}
+    {% endfor %}
+
+    document.getElementById(
+        "totalAmount"
+    ).innerText = total.toFixed(3);
+}
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        let inputs = document.querySelectorAll(
+            "input[type='number']"
+        );
+
+        inputs.forEach(function(input){
+
+            input.addEventListener(
+                "input",
+                calculateTotal
+            );
+
+        });
+
+    }
+);
+
+</script>
+<script>
+
+document.getElementById("phone")
+.addEventListener("blur", function(){
+
+    let phone = this.value;
+
+    if(phone === "")
+        return;
+
+    fetch(
+        "/find-customer/?phone=" + phone
+    )
+    .then(response => response.json())
+    .then(data => {
+
+        if(data.found){
+
+            document.getElementById(
+                "customer_name"
+            ).value = data.name;
+
+        }
+        else{
+
+            document.getElementById(
+                "customer_name"
+            ).value = "";
+
+        }
+
+    });
+
+});
+
+</script>
+{% endblock %}
+</body>
+</html>
