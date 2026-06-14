@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from datetime import date
+from django.contrib.auth.models import User
+from customers.models import Shop
 from django.db.models import Sum
 from customers.models import Customer
 from django.http import JsonResponse
@@ -26,6 +28,10 @@ from datetime import timedelta
 from django.utils import timezone
 from .models import Expense
 from urllib.parse import quote
+from django.db import transaction
+from customers.models import Subscription
+
+
 
 
 #from .models import Customer
@@ -947,6 +953,24 @@ def login_view(request):
         )
 
         if user:
+            # Super admin can always login
+            if user.is_superuser:
+                login(request, user)
+                return redirect('/')
+
+            # Laundry shop users
+            if hasattr(user, 'shop'):
+
+                if not user.shop.is_active:
+
+                    messages.error(
+
+                        request,
+                        'Your account is inactive. Please contact administrator.'
+                    )
+
+                    return redirect('/login/')
+
 
             login(request, user)
 
@@ -1164,5 +1188,296 @@ def profit_report(request):
             'cash_profit': cash_profit
         }
     )
+@login_required
+def shop_list(request):
+
+    if not request.user.is_superuser:
+
+        return redirect('/')
+
+    shops = Shop.objects.all().order_by('name')
+    for shop in shops:
+        shop.customer_count = shop.customer_set.count()
+        shop.order_count = shop.order_set.count()
+        shop.outstanding = sum(
+            order.balance
+            for order in shop.order_set.all()
+
+        )
 
 
+    return render(
+
+        request,
+        'orders/shops.html',
+        {
+            'shops': shops
+        }
+    )
+@login_required
+def add_shop(request):
+
+    if not request.user.is_superuser:
+        return redirect('/')
+
+    if request.method == "POST":
+
+        username = request.POST.get('username')
+
+        if User.objects.filter(username=username).exists():
+
+            return render(
+                request,
+                'orders/add_shop.html',
+                {
+                    'error': 'Username already exists.'
+                }
+            )
+
+        with transaction.atomic():
+
+            user = User.objects.create_user(
+
+                username=username,
+
+                password=request.POST.get('password')
+
+            )
+
+            shop = Shop.objects.create(
+
+                user=user,
+
+                name=request.POST.get('name'),
+
+                phone=request.POST.get('phone'),
+
+                address=request.POST.get('address'),
+
+                default_delivery_days=int(
+
+                    request.POST.get(
+                        'default_delivery_days'
+                    ) or 2
+
+                )
+
+            )
+
+            Subscription.objects.create(
+
+                shop=shop,
+
+                plan=request.POST.get(
+                    'plan'
+                ) or 'TRIAL',
+
+                monthly_fee=request.POST.get(
+                    'monthly_fee'
+                ) or 0,
+
+                payment_status=request.POST.get(
+                    'payment_status'
+                ) or 'PENDING',
+
+                notes=request.POST.get(
+                    'notes'
+                ) or ''
+
+            )
+
+        return redirect('/shops/')
+
+    return render(
+
+        request,
+
+        'orders/add_shop.html'
+
+    )
+from django.shortcuts import get_object_or_404
+
+from customers.models import Shop, Subscription
+
+
+@login_required
+def edit_shop(request, shop_id):
+
+    if not request.user.is_superuser:
+
+        return redirect('/')
+
+    shop = get_object_or_404(
+
+        Shop,
+
+        id=shop_id
+
+    )
+
+    subscription, created = Subscription.objects.get_or_create(
+
+        shop=shop
+
+    )
+
+    if request.method == 'POST':
+
+        shop.name = request.POST.get(
+
+            'name'
+
+        )
+
+        shop.phone = request.POST.get(
+
+            'phone'
+
+        )
+
+        shop.address = request.POST.get(
+
+            'address'
+
+        )
+
+        shop.default_delivery_days = int(
+
+            request.POST.get(
+
+                'default_delivery_days'
+
+            ) or 2
+
+        )
+        shop.is_active = (request.POST.get('is_active') == '1')
+
+        shop.save()
+
+
+        subscription.plan = request.POST.get(
+
+            'plan'
+
+        )
+
+        subscription.monthly_fee = (
+
+            request.POST.get(
+
+                'monthly_fee'
+
+            ) or 0
+
+        )
+
+        subscription.payment_status = request.POST.get(
+
+            'payment_status'
+
+        )
+
+        subscription.notes = request.POST.get(
+
+            'notes'
+
+        )
+        
+
+        subscription.save()
+
+        return redirect('/shops/')
+
+
+    return render(
+
+        request,
+
+        'orders/edit_shop.html',
+
+        {
+
+            'shop': shop,
+
+            'subscription': subscription
+
+        }
+
+    )
+@login_required
+def reset_shop_password(
+
+    request,
+
+    shop_id
+
+):
+
+    if not request.user.is_superuser:
+
+        return redirect('/')
+
+    shop = get_object_or_404(
+
+        Shop,
+
+        id=shop_id
+
+    )
+
+    if request.method == 'POST':
+
+        password = request.POST.get(
+
+            'password'
+
+        )
+
+        shop.user.set_password(
+
+            password
+
+        )
+
+        shop.user.save()
+
+        return redirect('/shops/')
+
+    return render(
+
+        request,
+
+        'orders/reset_password.html',
+
+        {
+
+            'shop': shop
+
+        }
+
+    )
+@login_required
+def deactivate_shop(
+
+    request,
+
+    shop_id
+
+):
+
+    if not request.user.is_superuser:
+
+        return redirect('/')
+
+    shop = get_object_or_404(
+
+        Shop,
+
+        id=shop_id
+
+    )
+
+    shop.is_active = False
+    shop.save()
+
+    return redirect('/shops/')

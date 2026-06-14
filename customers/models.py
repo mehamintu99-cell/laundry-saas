@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import timedelta
 
 class Shop(models.Model):
 
@@ -31,6 +33,10 @@ class Shop(models.Model):
         blank=True,
         default="Dear {customer}, your laundry order #{order} is ready for collection. Total Amount: {amount} OMR."
     )
+    is_active = models.BooleanField(
+        default=True
+    )
+    
 
     def __str__(self):
         return self.name
@@ -57,3 +63,45 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.name
+
+
+
+class Subscription(models.Model):
+
+    shop = models.OneToOneField(
+        Shop,
+        on_delete=models.CASCADE
+    )
+
+    plan = models.CharField(
+        max_length=20,
+        choices=[
+            ('TRIAL', 'Trial'),
+            ('BASIC', 'Basic'),
+            ('PREMIUM', 'Premium'),
+        ],
+        default='TRIAL'
+    )
+
+    monthly_fee = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    payment_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('PENDING', 'Pending'),
+            ('PAID', 'Paid'),
+        ],
+        default='PENDING'
+    )
+
+    notes = models.TextField(
+        blank=True
+    )
+
+    def __str__(self):
+
+        return f"{self.shop.name} - {self.plan}"

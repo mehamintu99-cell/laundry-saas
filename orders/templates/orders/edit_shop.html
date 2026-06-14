@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-body">
+
+            <h2 class="mb-4">
+
+                Edit Shop
+
+            </h2>
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        Shop Name
+
+                    </label>
+
+                    <input
+
+                        type="text"
+
+                        name="name"
+
+                        class="form-control"
+
+                        value="{{ shop.name }}"
+
+                        required
+
+                    >
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        Phone
+
+                    </label>
+
+                    <input
+
+                        type="text"
+
+                        name="phone"
+
+                        class="form-control"
+
+                        value="{{ shop.phone }}"
+
+                    >
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        Address
+
+                    </label>
+
+                    <textarea
+
+                        name="address"
+
+                        class="form-control"
+
+                        rows="3"
+
+                    >{{ shop.address }}</textarea>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        Default Delivery Days
+
+                    </label>
+
+                    <input
+
+                        type="number"
+
+                        name="default_delivery_days"
+
+                        class="form-control"
+
+                        value="{{ shop.default_delivery_days }}"
+
+                    >
+
+                </div>
+
+
+                <hr>
+
+                <h4>
+
+                    Subscription
+
+                </h4>
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Status
+
+    </label>
+
+    <select
+
+        name="is_active"
+
+        class="form-select"
+
+    >
+
+        <option
+
+            value="1"
+
+            {% if shop.is_active %}
+
+            selected
+
+            {% endif %}
+
+        >
+
+            Active
+
+        </option>
+
+        <option
+
+            value="0"
+
+            {% if not shop.is_active %}
+
+            selected
+
+            {% endif %}
+
+        >
+
+            Inactive
+
+        </option>
+
+    </select>
+
+</div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        Plan
+
+                    </label>
+
+                    <select
+
+                        name="plan"
+
+                        class="form-select"
+
+                    >
+
+                        <option
+
+                            value="TRIAL"
+
+                            {% if subscription.plan == 'TRIAL' %}
+
+                            selected
+
+                            {% endif %}
+
+                        >
+
+                            Trial
+
+                        </option>
+
+                        <option
+
+                            value="BASIC"
+
+                            {% if subscription.plan == 'BASIC' %}
+
+                            selected
+
+                            {% endif %}
+
+                        >
+
+                            Basic
+
+                        </option>
+
+                        <option
+
+                            value="PREMIUM"
+
+                            {% if subscription.plan == 'PREMIUM' %}
+
+                            selected
+
+                            {% endif %}
+
+                        >
+
+                            Premium
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        Monthly Fee
+
+                    </label>
+
+                    <input
+
+                        type="number"
+
+                        step="0.01"
+
+                        name="monthly_fee"
+
+                        class="form-control"
+
+                        value="{{ subscription.monthly_fee }}"
+
+                    >
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        Payment Status
+
+                    </label>
+
+                    <select
+
+                        name="payment_status"
+
+                        class="form-select"
+
+                    >
+
+                        <option
+
+                            value="PENDING"
+
+                            {% if subscription.payment_status == 'PENDING' %}
+
+                            selected
+
+                            {% endif %}
+
+                        >
+
+                            Pending
+
+                        </option>
+
+                        <option
+
+                            value="PAID"
+
+                            {% if subscription.payment_status == 'PAID' %}
+
+                            selected
+
+                            {% endif %}
+
+                        >
+
+                            Paid
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        Notes
+
+                    </label>
+
+                    <textarea
+
+                        name="notes"
+
+                        class="form-control"
+
+                        rows="3"
+
+                    >{{ subscription.notes }}</textarea>
+
+                </div>
+<div class="form-check mb-3">
+
+    <input
+
+        class="form-check-input"
+
+        type="checkbox"
+
+        name="is_active"
+
+        {% if shop.is_active %}
+
+        checked
+
+        {% endif %}
+
+    >
+
+    <label class="form-check-label">
+
+        Active Shop
+
+    </label>
+
+</div>
+
+
+                <button
+
+                    type="submit"
+
+                    class="btn btn-success"
+
+                >
+
+                    Update Shop
+
+                </button>
+
+                <a
+
+                    href="/shops/"
+
+                    class="btn btn-secondary"
+
+                >
+
+                    Cancel
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

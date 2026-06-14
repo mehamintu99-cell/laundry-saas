@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>
+
+    Shops
+
+</h2>
+
+<a
+
+    href="/shops/add/"
+
+    class="btn btn-primary mb-3">
+
+    Add Shop
+
+</a>
+
+<table class="table table-bordered">
+
+<tr>
+
+    <th>Shop</th>
+
+    <th>Username</th>
+
+    <th>Phone</th>
+<th>Plan</th>
+
+<th>Fee</th>
+
+<th>Payment</th>
+<th>Customer Count</th>
+<th>Order Count</th>
+<th>Outstanding</th>
+
+<th>Action</th>
+<th>Status</th>
+</tr>
+
+{% for shop in shops %}
+
+<tr>
+
+    <td>
+
+        {{ shop.name }}
+
+    </td>
+
+    <td>
+
+        {{ shop.user.username }}
+
+    </td>
+
+    <td>
+
+        {{ shop.phone }}
+
+    </td>
+
+<td>
+
+    {{ shop.subscription.plan }}
+
+</td>
+
+<td>
+
+    {{ shop.subscription.monthly_fee }}
+
+</td>
+
+<td>
+
+    {{ shop.subscription.payment_status }}
+
+</td>
+<td>{{ shop.customer_count }}</td>
+
+<td>{{ shop.order_count }}</td>
+
+<td>{{ shop.outstanding }}</td>
+
+<td>
+
+    <a
+
+        href="/shops/{{ shop.id }}/edit/"
+
+        class="btn btn-sm btn-primary"
+
+    >
+
+        Edit
+
+    </a>
+
+
+<a
+
+    href="/shops/{{ shop.id }}/reset-password/"
+
+    class="btn btn-sm btn-warning"
+
+>
+
+    Reset Password
+
+</a>
+
+</td>
+<td>
+
+{% if shop.is_active %}
+
+<span class="badge bg-success">
+
+    Active
+
+</span>
+
+{% else %}
+
+<span class="badge bg-danger">
+
+    Inactive
+
+</span>
+
+{% endif %}
+
+</td>
+
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+{% endblock %}

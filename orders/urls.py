@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import find_customer
 from .views import logout_view
-from .views import dashboard, new_order, orders_list, order_detail,update_status,customer_search, reports,receive_payment,edit_notes,outstanding_payments,customer_outstanding_report,overdue_orders,orders_due_today,ready_orders,pending_orders_view,service_summary,payment_report,daily_closing,partial_delivery,login_view,expense_list,delete_expense,edit_expense,expense_report,profit_report
+from .views import dashboard, new_order, orders_list, order_detail,update_status,customer_search, reports,receive_payment,edit_notes,outstanding_payments,customer_outstanding_report,overdue_orders,orders_due_today,ready_orders,pending_orders_view,service_summary,payment_report,daily_closing,partial_delivery,login_view,expense_list,delete_expense,edit_expense,expense_report,profit_report,shop_list,add_shop,edit_shop,reset_shop_password,deactivate_shop
 
 
 urlpatterns = [
@@ -99,6 +99,43 @@ urlpatterns = [
     'profit-report/',
     profit_report,
     name='profit_report'
+),
+    path(
+    'shops/',
+    shop_list,
+    name='shop_list'
+),
+    path(
+    'shops/add/',
+    add_shop,
+    name='add_shop'
+),
+    path(
+
+    'shops/<int:shop_id>/edit/',
+
+    edit_shop,
+
+    name='edit_shop'
+
+),
+    path(
+
+    'shops/<int:shop_id>/reset-password/',
+
+    reset_shop_password,
+
+    name='reset_shop_password'
+
+),
+    path(
+
+    'shops/<int:shop_id>/delete/',
+
+    deactivate_shop,
+
+    name='deactivate_shop'
+
 ),
     
     
