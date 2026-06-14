@@ -20,12 +20,11 @@
 
 <a href="https://web.whatsapp.com/send?phone=968{{ customer.phone }}"
    target="_blank"
-   class="btn btn-success mb-3">
+   class="btn btn-success mb-3 whatsapp-link">
 
     📱 WhatsApp Customer
 
 </a>
-
 <p>
     <strong>Last Visit:</strong>
 
@@ -206,5 +205,46 @@
 ```
 
 </div>
+<script>
+
+document.querySelector('.whatsapp-link')
+
+.addEventListener(
+
+'click',
+
+function(e){
+
+    if(
+
+        /Android|iPhone|iPad|iPod/i
+
+        .test(
+
+            navigator.userAgent
+
+        )
+
+    ){
+
+        e.preventDefault();
+
+        window.location.href =
+
+        this.href.replace(
+
+        'https://web.whatsapp.com/send',
+
+        'whatsapp://send'
+
+        );
+
+    }
+
+}
+
+);
+
+</script>
 
 {% endblock %}

@@ -223,16 +223,16 @@
 
                 {% if order.status == 'ready' %}
 
-                <a
-                    href="https://web.whatsapp.com/send?phone=968{{ order.customer.phone }}&text=Dear%20{{ order.customer.name }},%20your%20laundry%20order%20%23{{ order.id }}%20is%20ready%20for%20collection.%20Total%20Amount:%20{{ order.total_amount }}%20OMR."
-                    target="_blank"
-                    class="btn btn-success">
+<a
+    href="{{ ready_whatsapp_url|safe }}"
+    target="_blank"
+    class="btn btn-success whatsapp-link">
 
-                    📱 Send WhatsApp
+    📱 Send WhatsApp
 
-                </a>
+</a>
 
-                {% endif %}
+{% endif %}
 
             </div>
 
@@ -400,7 +400,7 @@ href="{% if is_new_order %}
 
 {% endif %}"
 target="_blank"
-class="btn btn-success"
+class="btn btn-success whatsapp-link"
 onclick="
 
         var modal =
@@ -467,5 +467,72 @@ window.onload = function() {
 </script>
 
 {% endif %}
+<script>
+
+document.addEventListener(
+
+    'DOMContentLoaded',
+
+    function() {
+
+        document
+
+        .querySelectorAll(
+
+            '.whatsapp-link'
+
+        )
+
+        .forEach(
+
+            function(link) {
+
+                link.addEventListener(
+
+                    'click',
+
+                    function(e) {
+
+                        if (
+
+                            /Android|iPhone|iPad|iPod/i
+
+                            .test(
+
+                                navigator.userAgent
+
+                            )
+
+                        ) {
+
+                            e.preventDefault();
+
+                            window.location.href =
+
+                                this.href
+
+                                .replace(
+
+                                    'https://web.whatsapp.com/send',
+
+                                    'whatsapp://send'
+
+                                );
+
+                        }
+
+                    }
+
+                );
+
+            }
+
+        );
+
+    }
+
+);
+
+</script>
 
 {% endblock %}
