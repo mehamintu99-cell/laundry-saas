@@ -52,6 +52,8 @@
                 <th>Total</th>
 		<th>Delivery Date</th>
                 <th>Status</th>
+<th>Edit</th>
+
             </tr>
         </thead>
 
@@ -126,6 +128,19 @@
                     {% endif %}
 
                 </td>
+<td>
+{% if order.status == 'received' %}
+
+<a
+    href="/order/{{ order.id }}/edit/"
+    class="btn btn-warning btn-sm">
+
+    Edit
+
+</a>
+
+{% endif %}
+</td>
 
             </tr>
 

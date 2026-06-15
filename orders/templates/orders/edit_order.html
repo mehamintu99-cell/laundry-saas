@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>New Laundry Order</title>
+    <title>Edit Laundry Order</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -39,7 +39,15 @@
         <div class="card-body">
 
             <h2 class="text-center mb-4">
-                🧾 New Laundry Order
+                {% if edit_mode %}
+
+✏️ Edit Order #{{ order.id }}
+
+{% else %}
+
+🧾 New Laundry Order
+
+{% endif %}
             </h2>
 {% if error %}
 
@@ -142,12 +150,13 @@ value="{{ order.customer.name|default:'' }}"
                             <input
                                 type="number"
                                 min="0"
-                                value="0"
+                                value="{% for oi in order.orderitem_set.all %}{% if oi.service.id == item.id %}{{ oi.quantity }}{% endif %}{% endfor %}"
 "
                                 name="item_{{ item.id }}"
                                 class="form-control">
 
                         </div>
+
 
                     </div>
 
@@ -259,6 +268,7 @@ document.addEventListener(
             );
 
         });
+calculateTotal();
 
     }
 );

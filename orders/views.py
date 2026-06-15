@@ -120,7 +120,8 @@ def new_order(request):
 
         for item in items:
 
-            qty = int(request.POST.get(f"item_{item.id}", 0))
+            #qty = int(request.POST.get(f"item_{item.id}", 0))
+            qty = int(request.POST.get(f"item_{item.id}") or 0)
 
             if qty > 0:
 
@@ -1481,3 +1482,114 @@ def deactivate_shop(
     shop.save()
 
     return redirect('/shops/')
+@login_required
+def edit_order(request, order_id):
+
+    shop = request.user.shop
+
+    order = Order.objects.get(
+        id=order_id,
+        shop=shop
+    )
+
+    customers = Customer.objects.filter(
+        shop=shop
+    )
+
+    categories = ServiceCategory.objects.filter(
+        shop=shop
+    )
+
+    existing_items = {}
+
+    for oi in order.orderitem_set.all():
+
+        existing_items[oi.service.id] = oi.quantity
+
+    if order.status != 'received':
+
+        return redirect(
+            f'/order/{order.id}/'
+        )
+
+    if request.method == 'POST':
+
+        # Update delivery date
+
+        order.delivery_date = request.POST.get(
+            'delivery_date'
+        )
+
+        order.save()
+
+        # Delete old items
+
+        OrderItem.objects.filter(
+            order=order
+        ).delete()
+
+        total = 0
+
+        items = ServiceItem.objects.filter(
+            category__shop=shop
+        )
+
+        for item in items:
+
+            qty = int(
+
+                request.POST.get(
+
+                    f"item_{item.id}"
+
+                ) or 0
+
+            )
+
+            if qty > 0:
+
+                OrderItem.objects.create(
+
+                    order=order,
+
+                    service=item,
+
+                    quantity=qty,
+
+                    price=item.price
+
+                )
+
+                total += qty * float(
+                    item.price
+                )
+
+        order.total_amount = total
+
+        order.save()
+
+        return redirect(
+            f'/order/{order.id}/'
+        )
+
+    return render(
+
+        request,
+
+        'orders/edit_order.html',
+
+        {
+
+            'order': order,
+
+            'categories': categories,
+
+            'customers': customers,
+
+            'edit_mode': True,
+
+            'existing_items': existing_items
+
+        }
+
+    )
