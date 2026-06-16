@@ -102,7 +102,8 @@ def service_list(request):
 
             price=request.POST.get(
                 'price'
-            )
+            ),
+            image=request.FILES.get('image')
         )
 
         return redirect('/services/')
@@ -159,6 +160,10 @@ def edit_service(request, service_id):
         service.name = request.POST.get('name')
         service.price = price
         service.category_id = request.POST.get('category')
+        if request.FILES.get('image'):
+
+            service.image = request.FILES.get('image')
+    
 
         service.save()
 

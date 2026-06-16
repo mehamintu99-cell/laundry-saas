@@ -54,7 +54,8 @@ def dashboard(request):
     outstanding_amount = 0
     today_orders = Order.objects.filter(shop=shop,delivery_date=date.today()).exclude(status='picked').count()
     today_date = date.today().strftime('%Y-%m-%d')
-
+    due_today_orders = Order.objects.filter(
+        shop=request.user.shop,delivery_date=timezone.now().date()).select_related('customer').order_by('-id')[:5]
     month_start = date(date.today().year,date.today().month,1).strftime('%Y-%m-%d')
     unpaid_orders = Order.objects.filter(shop=shop).exclude(payment_status='paid')
     picked_orders = Order.objects.filter(shop=shop,status='picked').count()
@@ -81,6 +82,7 @@ def dashboard(request):
             'month_start': month_start,
             'picked_orders': picked_orders,
             'today_collections': today_collections,
+            'due_today_orders': due_today_orders,
         }
     )
 

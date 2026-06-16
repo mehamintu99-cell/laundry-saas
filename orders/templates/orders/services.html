@@ -17,7 +17,7 @@
 
 {% endif %}
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
 
                 {% csrf_token %}
 
@@ -71,6 +71,25 @@ min="0.001"
                             required>
 
                     </div>
+<div class="col-md-2">
+
+<label>
+
+Image
+
+</label>
+
+<input
+
+type="file"
+
+name="image"
+
+class="form-control"
+
+accept="image/*">
+
+</div>
 
                     <div class="col-md-2 d-flex align-items-end">
 
@@ -97,10 +116,11 @@ min="0.001"
         <thead class="table-light">
 
             <tr>
-
+<th>Image</th>
                 <th>Category</th>
                 <th>Service</th>
                 <th>Price</th>
+
                 <th width="120">Action</th>
 
             </tr>
@@ -112,7 +132,29 @@ min="0.001"
         {% for service in services %}
 
             <tr>
+<td>
 
+{% if service.image %}
+
+<img
+
+src="{{ service.image.url }}"
+
+width="50"
+
+height="50"
+
+class="rounded"
+
+style="object-fit:cover;">
+
+{% else %}
+
+🧺
+
+{% endif %}
+
+</td>
                 <td>
 
                     {{ service.category.name }}

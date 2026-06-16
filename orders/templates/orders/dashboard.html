@@ -2,187 +2,822 @@
 
 {% block content %}
 
+
+<style>
+
+.dashboard-card{
+
+    border:none;
+
+    border-radius:18px;
+
+    transition:0.25s;
+
+    height:145px;
+
+}
+
+
+.dashboard-card:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:0 8px 20px rgba(0,0,0,0.15);
+
+}
+
+
+.card-icon{
+
+    font-size:26px;
+
+}
+
+
+.card-value{
+
+    font-size:28px;
+
+    font-weight:bold;
+
+}
+
+
+.card-title{
+
+    font-size:12px;
+
+}
+
+
+@media(max-width:768px){
+
+.dashboard-card{
+
+    height:110px;
+
+}
+
+.card-value{
+
+    font-size:22px;
+
+}
+
+}
+
+</style>
+
+
+
 <div class="container mt-4">
 
 
-<h2 class="mb-4">
-    📊 Dashboard
+<h2 class="mb-4 text-center">
+
+   🏪 Laundry Dashboard
+
+    <br>
+
+    <small class="text-muted">
+
+        لوحة التحكم
+
+    </small>
+
 </h2>
+
+<!-- QUICK ACTIONS -->
+
+
+<div class="row mb-4">
+
+    <div class="col-6 col-md-6 col-lg-3 mb-3">
+
+        <a href="/new-order/"
+           class="text-decoration-none">
+
+            <div class="card text-bg-primary shadow h-100 dashboard-card">
+
+                <div class="card-body text-center">
+
+                    <div style="font-size:45px;">
+
+                        ➕
+
+                    </div>
+
+                    <h5>
+
+                        New Order
+
+                    </h5>
+
+                    <small>
+
+                        طلب جديد
+
+                    </small>
+
+                </div>
+
+            </div>
+
+        </a>
+
+    </div>
+
+
+
+    <div class="col-6 col-md-6 col-lg-3 mb-3">
+
+        <a href="/orders/"
+           class="text-decoration-none">
+
+            <div class="card text-bg-success shadow h-100 dashboard-card">
+
+                <div class="card-body text-center">
+
+                    <div style="font-size:45px;">
+
+                          👁️
+
+                    </div>
+
+                    <h5>
+
+                       View Orders
+
+                    </h5>
+
+                    <small>
+
+                        عرض الطلبات
+
+                    </small>
+
+                </div>
+
+            </div>
+
+        </a>
+
+    </div>
+
+
+
+    <div class="col-6 col-md-6 col-lg-3 mb-3">
+
+        <a href="/customers/"
+           class="text-decoration-none">
+
+            <div class="card text-bg-info shadow h-100 dashboard-card">
+
+                <div class="card-body text-center">
+
+                    <div style="font-size:45px;">
+
+                        👥
+
+                    </div>
+
+                    <h5>
+
+                        Customers
+
+                    </h5>
+
+                    <small>
+
+                        العملاء
+
+                    </small>
+
+                </div>
+
+            </div>
+
+        </a>
+
+    </div>
+
+
+
+    <div class="col-6 col-md-6 col-lg-3 mb-3">
+
+        <a href="/reports/"
+           class="text-decoration-none">
+
+            <div class="card text-bg-dark shadow h-100 dashboard-card">
+
+                <div class="card-body text-center">
+
+                    <div style="font-size:45px;">
+
+                        📊
+
+                    </div>
+
+                    <h5>
+
+                        Reports
+
+                    </h5>
+
+                    <small>
+
+                        التقارير
+
+                    </small>
+
+                </div>
+
+            </div>
+
+        </a>
+
+    </div>
+
+</div>
+
+<div class="card shadow-sm mt-4">
+
+    <div class="card-header bg-primary text-white">
+
+        <h5 class="mb-0">
+
+            📅 Orders Due Today
+
+        </h5>
+
+    </div>
+
+
+    <div class="card-body">
+
+
+        {% for order in due_today_orders %}
+
+
+        <div class="d-flex
+
+                    justify-content-between
+
+                    align-items-center
+
+                    border-bottom
+
+                    py-2">
+
+
+            <div>
+
+                <a
+
+href="/order/{{ order.id }}/"
+
+class="text-decoration-none fw-bold">
+
+#{{ order.id }}
+
+</a>
+
+                <br>
+
+                {{ order.customer.name }}
+
+            </div>
+
+
+            <div>
+
+                {{ order.total_amount|floatformat:3 }}
+
+                OMR
+
+            </div>
+
+
+            <div>
+
+                {% if order.status == 'ready' %}
+
+                <span class="badge bg-success">
+
+                    🟢 Ready
+
+                </span>
+
+                {% elif order.status == 'received' %}
+
+                <span class="badge bg-warning text-dark">
+
+                    🟡 Received
+
+                </span>
+
+                {% elif order.status == 'picked' %}
+
+                <span class="badge bg-primary">
+
+                    🚚 Delivered
+
+                </span>
+
+                {% else %}
+
+                <span class="badge bg-danger">
+
+                    ⚠️ Overdue
+
+                </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        {% empty %}
+
+        <p class="text-muted">
+
+            No orders due today
+
+        </p>
+
+        {% endfor %}
+
+
+        <div class="text-center mt-3">
+
+            <a
+
+            href="/orders-due-today/"
+
+            class="btn btn-outline-primary">
+
+                View All
+
+            </a>
+
+        </div>
+
+
+    </div>
+
+</div>
+
 
 <!-- ROW 1 -->
 
 <div class="row">
 
-    <div class="col-lg-3 col-md-6 mb-3">
-        <a href="/reports/?from_date={{ today_date }}&to_date={{ today_date }}"
-           class="text-decoration-none text-dark">
+<!-- Today's Sales -->
 
-            <div class="card border-success shadow-sm">
-                <div class="card-body text-center">
-                    <h6>Today's Order Value</h6>
-                    <h6>{{ today_revenue|floatformat:3 }}</h6>
-                    <small>OMR</small>
-                </div>
-            </div>
+<div class="col-6 col-md-6 col-lg-3 mb-3">
 
-        </a>
-    </div>
+<a href="/reports/?from_date={{ today_date }}&to_date={{ today_date }}"
 
-    <div class="col-lg-3 col-md-6 mb-3">
-        <a href="/payment-report/?today=1"
-           class="text-decoration-none text-dark">
+class="text-decoration-none">
 
-            <div class="card border-primary shadow-sm">
-                <div class="card-body text-center">
-                    <h6>Today's Collections</h6>
-                    <h6>{{ today_collections|floatformat:3 }}</h6>
-                    <small>OMR</small>
-                </div>
-            </div>
+<div class="card dashboard-card bg-primary text-white shadow">
 
-        </a>
-    </div>
+<div class="card-body text-center">
 
-    <div class="col-lg-3 col-md-6 mb-3">
-        <a href="/orders-due-today/"
-           class="text-decoration-none">
+<div class="card-icon">
 
-            <div class="card text-bg-info shadow-sm">
-                <div class="card-body text-center">
-                    <h6>Orders Due Today</h6>
-                    <h2>{{ today_orders }}</h2>
-                </div>
-            </div>
+💰
 
-        </a>
-    </div>
+</div>
 
-    <div class="col-lg-3 col-md-6 mb-3">
-        <a href="/overdue-orders/"
-           class="text-decoration-none">
+<div class="card-title">
 
-            <div class="card text-bg-danger shadow-sm">
-                <div class="card-body text-center">
-                    <h6>Overdue Alert</h6>
-                    <h2>{{ overdue_orders }}</h2>
-                </div>
-            </div>
+Today's Sales
 
-        </a>
-    </div>
+</div>
+
+<div class="card-value">
+
+{{ today_revenue|floatformat:3 }}
+
+</div>
+
+<small>OMR</small>
+
+</div>
+
+</div>
+
+</a>
+
+</div>
+
+
+
+<!-- Cash Received -->
+
+<div class="col-6 col-md-6 col-lg-3 mb-3">
+
+<a href="/payment-report/?today=1"
+
+class="text-decoration-none">
+
+<div class="card dashboard-card bg-success text-white shadow">
+
+<div class="card-body text-center">
+
+<div class="card-icon">
+
+💵
+
+</div>
+
+<div class="card-title">
+
+Cash Received
+
+</div>
+
+<div class="card-value">
+
+{{ today_collections|floatformat:3 }}
+
+</div>
+
+<small>OMR</small>
+
+</div>
+
+</div>
+
+</a>
+
+</div>
+
+
+
+<!-- Customer Balance -->
+
+<div class="col-6 col-md-6 col-lg-3 mb-3">
+
+<a href="/customer-outstanding/"
+
+class="text-decoration-none">
+
+<div class="card dashboard-card bg-danger text-white shadow">
+
+<div class="card-body text-center">
+
+<div class="card-icon">
+
+🧾
+
+</div>
+
+<div class="card-title">
+
+Customer Balance
+
+</div>
+
+<div class="card-value">
+
+{{ outstanding_amount|floatformat:3 }}
+
+</div>
+
+<small>OMR</small>
+
+</div>
+
+</div>
+
+</a>
+
+</div>
+
+
+
+<!-- Monthly Sales -->
+
+<div class="col-6 col-md-6 col-lg-3 mb-3">
+
+<a href="/reports/?from_date={{ month_start }}&to_date={{ today_date }}"
+
+class="text-decoration-none">
+
+<div class="card dashboard-card bg-warning text-dark shadow">
+
+<div class="card-body text-center">
+
+<div class="card-icon">
+
+📈
+
+</div>
+
+<div class="card-title">
+
+Monthly Sales
+
+</div>
+
+<div class="card-value">
+
+{{ month_revenue|floatformat:3 }}
+
+</div>
+
+<small>OMR</small>
+
+</div>
+
+</div>
+
+</a>
+
+</div>
 
 </div>
 
 <!-- ROW 2 -->
 
+<!-- ROW 2 : ORDERS -->
+
 <div class="row">
 
-    <div class="col-lg-3 col-md-6 mb-3">
+    <!-- Total Orders -->
+
+    <div class="col-6 col-md-6 col-lg-3 mb-3">
+
         <a href="/orders/"
            class="text-decoration-none">
 
-            <div class="card text-bg-primary shadow-sm">
+            <div class="card dashboard-card bg-primary text-white shadow">
+
                 <div class="card-body text-center">
-                    <h6>Total Orders</h6>
-                    <h2>{{ total_orders }}</h2>
+
+                    <div class="card-icon">
+
+                        📦
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Total Orders
+
+                    </div>
+
+                    <div class="card-value">
+
+                        {{ total_orders }}
+
+                    </div>
+
                 </div>
+
             </div>
 
         </a>
+
     </div>
 
-    <div class="col-lg-3 col-md-6 mb-3">
+
+
+    <!-- In Process -->
+
+    <div class="col-6 col-md-6 col-lg-3 mb-3">
+
         <a href="/pending-orders/"
            class="text-decoration-none">
 
-            <div class="card text-bg-warning shadow-sm">
+            <div class="card dashboard-card bg-warning text-dark shadow">
+
                 <div class="card-body text-center">
-                    <h6>Pending Orders</h6>
-                    <h2>{{ pending_orders }}</h2>
+
+                    <div class="card-icon">
+
+                        🔄
+
+                    </div>
+
+                    <div class="card-title">
+
+                        In Process
+
+                    </div>
+
+                    <div class="card-value">
+
+                        {{ pending_orders }}
+
+                    </div>
+
                 </div>
+
             </div>
 
         </a>
+
     </div>
 
-    <div class="col-lg-3 col-md-6 mb-3">
+
+
+    <!-- Ready for Pickup -->
+
+    <div class="col-6 col-md-6 col-lg-3 mb-3">
+
         <a href="/ready-orders/"
            class="text-decoration-none">
 
-            <div class="card text-bg-success shadow-sm">
+            <div class="card dashboard-card bg-success text-white shadow">
+
                 <div class="card-body text-center">
-                    <h6>Ready Orders</h6>
-                    <h2>{{ ready_orders }}</h2>
+
+                    <div class="card-icon">
+
+                        ✅
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Ready for Pickup
+
+                    </div>
+
+                    <div class="card-value">
+
+                        {{ ready_orders }}
+
+                    </div>
+
                 </div>
+
             </div>
 
         </a>
+
     </div>
 
-    <div class="col-lg-3 col-md-6 mb-3">
+
+
+    <!-- Delivered -->
+
+    <div class="col-6 col-md-6 col-lg-3 mb-3">
+
         <a href="/orders/?status=picked"
            class="text-decoration-none">
 
-            <div class="card text-bg-secondary shadow-sm">
+            <div class="card dashboard-card bg-secondary text-white shadow">
+
                 <div class="card-body text-center">
-                    <h6>Delivered Orders</h6>
-                    <h2>{{ picked_orders }}</h2>
+
+                    <div class="card-icon">
+
+                        🚚
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Delivered
+
+                    </div>
+
+                    <div class="card-value">
+
+                        {{ picked_orders }}
+
+                    </div>
+
                 </div>
+
             </div>
 
         </a>
+
     </div>
 
 </div>
-
 <!-- ROW 3 -->
+
+<!-- ROW 3 : ALERTS -->
 
 <div class="row">
 
-    <div class="col-lg-4 mb-3">
+    <!-- Due Today -->
 
-        <a href="/customer-outstanding/"
+    <div class="col-6 col-md-6 col-lg-4 mb-3">
+
+        <a href="/orders-due-today/"
            class="text-decoration-none">
 
-            <div class="card bg-danger text-white shadow">
+            <div class="card dashboard-card bg-info text-white shadow">
+
                 <div class="card-body text-center">
-                    <h5>Outstanding Amount</h5>
-                    <h6>{{ outstanding_amount|floatformat:3 }}</h6>
-                    <small>OMR</small>
+
+                    <div class="card-icon">
+
+                        📅
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Due Today
+
+                    </div>
+
+                    <div class="card-value">
+
+                        {{ today_orders }}
+
+                    </div>
+
                 </div>
+
             </div>
 
         </a>
 
     </div>
 
-    <div class="col-lg-4 mb-3">
 
-        <a href="/reports/?from_date={{ month_start }}&to_date={{ today_date }}"
-           class="text-decoration-none text-dark">
 
-            <div class="card border-primary shadow-sm">
+    <!-- Overdue -->
+
+    <div class="col-6 col-md-6 col-lg-4 mb-3">
+
+        <a href="/overdue-orders/"
+           class="text-decoration-none">
+
+            <div class="card dashboard-card bg-danger text-white shadow">
+
                 <div class="card-body text-center">
-                    <h5>Monthly Order Value</h5>
-                    <h6>{{ month_revenue|floatformat:3 }}</h6>
-                    <small>OMR</small>
+
+                    <div class="card-icon">
+
+                        ⚠️
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Overdue
+
+                    </div>
+
+                    <div class="card-value">
+
+                        {{ overdue_orders }}
+
+                    </div>
+
                 </div>
+
             </div>
 
         </a>
 
     </div>
 
-    <div class="col-lg-4 mb-3">
+
+
+    <!-- Total Customers -->
+
+    <div class="col-12 col-md-12 col-lg-4 mb-3">
 
         <a href="/customers/"
-           class="text-decoration-none text-dark">
+           class="text-decoration-none">
 
-            <div class="card border-secondary shadow-sm">
+            <div class="card dashboard-card bg-dark text-white shadow">
+
                 <div class="card-body text-center">
-                    <h5>Total Customers</h5>
-                    <h3>{{ total_customers }}</h3>
+
+                    <div class="card-icon">
+
+                        👥
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Total Customers
+
+                    </div>
+
+                    <div class="card-value">
+
+                        {{ total_customers }}
+
+                    </div>
+
                 </div>
+
             </div>
 
         </a>
@@ -191,52 +826,7 @@
 
 </div>
 
-<!-- QUICK ACTIONS -->
 
-<div class="card shadow-sm mt-3">
-
-    <div class="card-body">
-
-        <h4 class="mb-3">
-            Quick Actions
-        </h4>
-
-        <div class="row">
-
-            <div class="col-lg-3 col-md-6 mb-2">
-                <a href="/new-order/"
-                   class="btn btn-primary w-100">
-                    ➕ New Order
-                </a>
-            </div>
-
-            <div class="col-lg-3 col-md-6 mb-2">
-                <a href="/orders/"
-                   class="btn btn-success w-100">
-                    📦 Orders
-                </a>
-            </div>
-
-            <div class="col-lg-3 col-md-6 mb-2">
-                <a href="/customers/"
-                   class="btn btn-info w-100">
-                    👥 Customers
-                </a>
-            </div>
-
-            <div class="col-lg-3 col-md-6 mb-2">
-                <a href="/reports/"
-                   class="btn btn-dark w-100">
-                    📊 Reports
-                </a>
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-```
 
 </div>
 
