@@ -30,6 +30,7 @@ from .models import Expense
 from urllib.parse import quote
 from django.db import transaction
 from customers.models import Subscription
+from services.default_services import create_default_services
 
 
 
@@ -1266,6 +1267,8 @@ def add_shop(request):
                 )
 
             )
+            
+            create_default_services(shop)
 
             Subscription.objects.create(
 
@@ -1505,8 +1508,8 @@ def edit_order(request, order_id):
     existing_items = {}
 
     for oi in order.orderitem_set.all():
+        existing_items[str(oi.service.id)] = oi.quantity
 
-        existing_items[oi.service.id] = oi.quantity
 
     if order.status != 'received':
 

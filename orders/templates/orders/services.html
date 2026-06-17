@@ -1,6 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+.service-img{
+
+    width:60px;
+
+    height:60px;
+
+    object-fit:contain;
+
+    border-radius:12px;
+
+    margin:auto;
+
+    display:block;
+}
+</style>
 
 <div class="container mt-4">
 
@@ -134,23 +150,31 @@ accept="image/*">
             <tr>
 <td>
 
+{% load static %}
+
 {% if service.image %}
 
 <img
 
 src="{{ service.image.url }}"
 
-width="50"
+class="service-img">
 
-height="50"
+{% elif service.icon %}
 
-class="rounded"
+<img
 
-style="object-fit:cover;">
+src="/static/service_icons/{{ service.icon }}"
+
+class="service-img">
 
 {% else %}
 
+<div class="service-emoji">
+
 🧺
+
+</div>
 
 {% endif %}
 

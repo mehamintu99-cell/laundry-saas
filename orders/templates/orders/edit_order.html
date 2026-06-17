@@ -1,278 +1,287 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit Laundry Order</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
 
 <style>
 
-body{
-
-    background-color:#f8f9fa;
-
-}
-
-.category-header{
-
-    background:#0d6efd;
-
-    color:white;
-
-    padding:12px 18px;
-
-    border-radius:12px;
-
-    margin-top:20px;
-
-    margin-bottom:15px;
-
-    font-size:20px;
-
-    font-weight:600;
-
-    box-shadow:0 2px 8px rgba(0,0,0,0.15);
-
-}
-
-
 .service-card{
 
-    border-radius:15px;
+    border:1px solid #d9d9d9;
+
+    border-radius:18px;
+
+    background:white;
+
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
 
     transition:0.2s;
 
-}
+    cursor:pointer;
 
+    min-height:240px;
+
+    padding:20px;
+
+}
 
 .service-card:hover{
 
     transform:translateY(-3px);
 
-    box-shadow:0 5px 15px rgba(0,0,0,0.15);
+    box-shadow:0 6px 18px rgba(0,0,0,0.12);
 
 }
-.service-card{
 
-    border:none;
+.service-card.active{
 
-    border-radius:15px;
+    border:2px solid #0d6efd;
 
-    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    background:#eef5ff;
 
 }
 
 .service-img{
 
-    width:80px;
+    width:90px;
 
-    height:80px;
+    height:90px;
 
     object-fit:cover;
 
-    border-radius:15px;
+    border-radius:50%;
 
 }
 
-.service-name{
+.qty-btn{
 
-    font-size:22px;
+    width:32px;
 
-    font-weight:600;
+    height:32px;
 
-    margin-bottom:5px;
+    border-radius:50%;
 
 }
 
-.service-price{
+.qty-number{
 
     font-size:18px;
 
-    font-weight:600;
+    font-weight:bold;
 
-    color:#198754;
+    width:30px;
+
+    display:inline-block;
+
+}
+
+.category-scroll{
+
+    overflow-x:auto;
+
+    white-space:nowrap;
 
 }
 
-.qty-box{
+.category-scroll .nav-link{
 
-    max-width:160px;
+    border-radius:50px;
 
-    margin:auto;
+    margin-right:10px;
 
 }
+
+.selected-panel{
+
+    position:sticky;
+
+    top:20px;
+
+}
+
+.selected-row{
+
+    border-bottom:1px solid #eee;
+
+    padding:12px 0;
+
+}
+
+@media(max-width:768px){
+
+.service-grid .col-lg-3{
+
+flex:0 0 auto;
+
+width:50%;
+
+}
+
+.selected-panel{
+
+position:relative;
+
+margin-top:20px;
+
+}
+
+}
+
 </style>
-</head>
 
-<body>
-<!-- Navigation Bar -->
-{% extends 'base.html' %}
 
-{% block content %}
-<div class="container mt-4">
+<div class="container-fluid py-3">
 
-    <div class="card shadow">
+<form method="post">
 
-        <div class="card-body">
+{% csrf_token %}
 
-            <h2 class="text-center mb-4">
+<div class="row">
 
-{% if edit_mode %}
+<div class="col-lg-8">
+
+<h3 class="mb-3">
 
 ✏️ Edit Order #{{ order.id }}
 
-{% else %}
+</h3>
 
-🧾 New Laundry Order
 
-{% endif %}
-
-</h2>
-{% if error %}
-
-<div class="alert alert-danger">
-
-    {{ error }}
-
-</div>
-
-{% endif %}
-
-            <form method="POST">
-
-                {% csrf_token %}
-
-                <!-- DELIVERY DATE -->
-
-                <div class="row g-2 mb-4">
-
-    <!-- Delivery -->
-
-    <div class="col-3 col-md-3">
-
-        <label class="form-label fw-bold">
-
-            📅 Delivery
-
-        </label>
-
-        <input
-
-            type="date"
-
-            name="delivery_date"
-
-            value="{{ order.delivery_date|date:'Y-m-d' }}"
-
-            class="form-control"
-
-            required>
-
-    </div>
-
-
-    <!-- Phone -->
-
-    <div class="col-4 col-md-4">
-
-        <label class="form-label fw-bold">
-
-            📞 Phone
-
-        </label>
-
-        <input
-
-            type="text"
-
-            id="phone"
-
-            name="phone"
-
-            value="{{ order.customer.phone }}"
-
-            class="form-control"
-
-            required>
-
-    </div>
-
-
-
-    <!-- Customer -->
-
-    <div class="col-5 col-md-5">
-
-        <label class="form-label fw-bold">
-
-            👤 Customer
-
-        </label>
-
-        <input
-
-            type="text"
-
-            id="customer_name"
-
-            name="customer_name"
-
-            value="{{ order.customer.name }}"
-
-            class="form-control"
-
-            required>
-
-    </div>
-
-</div>
-
-                <!-- SERVICES -->
-
-                <h4 class="mb-3">
-                    Services
-                </h4>
-
-                {% for category in categories %}
-
-                    <div class="category-header">
-
-{% if "wash" in category.name|lower %}
-
-🧺
-
-{% elif "iron" in category.name|lower %}
-
-🧼
-
-{% elif "dry" in category.name|lower %}
-
-👔
-
-{% else %}
-
-📦
-
-{% endif %}
-
-{{ category.name }}
-
-</div>
-
-                    {% for item in category.serviceitem_set.all %}
-
-                    <div class="card service-card mb-3">
+<div class="card mb-3">
 
 <div class="card-body">
 
-<div class="row align-items-center text-center">
+<div class="row">
 
 
-<!-- ICON -->
+<div class="col-md-4 mb-2">
 
-<div class="col-md-2 text-center">
-<div style="font-size:50px;">
-<div class="col-md-2 text-center">
+<input
+
+type="date"
+
+class="form-control"
+
+name="delivery_date"
+
+value="{{ order.delivery_date|date:'Y-m-d' }}"
+
+required>
+
+</div>
+
+
+<div class="col-md-4 mb-2">
+
+<input
+
+type="text"
+
+class="form-control"
+
+id="phone"
+
+name="phone"
+
+value="{{ order.customer.phone }}"
+
+placeholder="Phone"
+
+required>
+
+</div>
+
+
+<div class="col-md-4 mb-2">
+
+<input
+
+type="text"
+
+class="form-control"
+
+id="customer_name"
+
+name="customer_name"
+
+value="{{ order.customer.name }}"
+
+placeholder="Customer Name"
+
+required>
+
+</div>
+
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<ul class="nav nav-pills category-scroll mb-4" id="catTabs">
+
+{% for category in categories %}
+
+<li class="nav-item">
+
+<button
+
+type="button"
+
+class="nav-link {% if forloop.first %}active{% endif %}"
+
+onclick="showCategory('{{ category.id }}',this)">
+
+{{ category.name }}
+
+</button>
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+
+
+
+
+
+<!-- CATEGORY SERVICES -->
+
+{% for category in categories %}
+
+<div
+
+class="category-section"
+
+id="cat-{{ category.id }}"
+
+{% if not forloop.first %}
+
+style="display:none"
+
+{% endif %}
+
+>
+
+<div class="row g-3 service-grid">
+
+
+{% for item in category.services.all %}
+
+<div class="col-6 col-md-4 col-lg-3">
+
+<div
+
+class="card service-card text-center"
+
+id="card{{item.id}}">
+
 
 {% if item.image %}
 
@@ -280,23 +289,15 @@ body{
 
 src="{{ item.image.url }}"
 
-class="service-img"
-
-style="
-
-width:80px;
-
-height:80px;
-
-object-fit:cover;
-
-border-radius:15px;
-
-">
+class="service-img mx-auto mb-2">
 
 {% else %}
 
-<div class="service-emoji">
+<div
+
+class="service-img mx-auto mb-2 d-flex align-items-center justify-content-center"
+
+style="background:#f2f2f2;font-size:35px;">
 
 🧺
 
@@ -304,83 +305,69 @@ border-radius:15px;
 
 {% endif %}
 
-</div>
-</div>
-</div>
+
+<h6>
+
+{{ item.name }}
+
+</h6>
 
 
-<!-- NAME -->
+<div class="text-primary fw-bold">
 
-<div class="col-md-5">
-
-    <div class="service-name">
-
-        {{ item.name }}
-
-    </div>
-
-</div>
-
-<div class="col-md-2">
-
-    <div class="service-price">
-
-        {{ item.price }}
-
-    </div>
-
-    <small class="text-muted">
-
-        OMR
-
-    </small>
+OMR {{ item.price }}
 
 </div>
 
 
-<!-- QUANTITY -->
 
-<div class="col-md-6">
+<input
 
-<div class="input-group qty-box">
+type="hidden"
+
+name="item_{{item.id}}"
+
+id="qty{{item.id}}"
+
+value="{% for oi in order.orderitem_set.all %}{% if oi.service.id == item.id %}{{ oi.quantity }}{% endif %}{% endfor %}">
+
+
+
+<div class="mt-3">
 
 <button
 
 type="button"
 
-class="btn btn-outline-danger"
+class="btn btn-outline-secondary qty-btn"
 
-onclick="decreaseQty({{ item.id }})">
+onclick="decreaseQty({{item.id}})">
 
 -
 
 </button>
 
 
-<input
 
-type="text"
+<span
 
-readonly
+class="qty-number"
 
-id="item_{{ item.id }}"
+id="badge{{item.id}}">
 
-name="item_{{ item.id }}"
+0
 
-value="{% for oi in order.orderitem_set.all %}{% if oi.service.id == item.id %}{{ oi.quantity }}{% endif %}{% endfor %}"
+</span>
 
-class="form-control text-center fw-bold"
-
-style="font-size:22px;">
 
 
 <button
 
 type="button"
 
-class="btn btn-outline-success"
+class="btn btn-outline-primary qty-btn"
 
-onclick="increaseQty({{ item.id }})">
+onclick="increaseQty({{item.id}})">
 
 +
 
@@ -390,220 +377,470 @@ onclick="increaseQty({{ item.id }})">
 
 </div>
 
+</div>
+
+{% endfor %}
 
 </div>
 
 </div>
 
+{% endfor %}
+
 </div>
 
 
-                    </div>
 
-                    {% endfor %}
+<!-- RIGHT SIDE -->
 
-                {% empty %}
+<div class="col-lg-4">
 
-                    <div class="alert alert-warning">
-                        No services found.
-                    </div>
+<div class="card selected-panel">
 
-                {% endfor %}
-
-                <!-- TOTAL -->
-
-                <div class="card mt-4 mb-3">
-
-                    <div class="card-body">
-
-                        <h5>
-                            <div class="card bg-success text-white shadow mt-4 mb-4">
-
-<div class="card-body text-center">
+<div class="card-header">
 
 <h5>
 
-💰 Total Amount
+Selected Items
 
 </h5>
 
-<h1 id="totalAmount">
+</div>
 
-0.000
 
-</h1>
+<div class="card-body">
+
+
+<div id="selectedItems">
+
+<div class="text-muted">
+
+No items selected
+
+</div>
+
+</div>
+
+
+<hr>
+
+
+<div class="d-flex justify-content-between">
 
 <h5>
+
+Total
+
+</h5>
+
+
+<h4>
 
 OMR
 
-</h5>
+<span id="grandTotal">
+
+0.000
+
+</span>
+
+</h4>
 
 </div>
 
-</div>
-                        </h5>
-
-                    </div>
-
-                </div>
-
-                <!-- SAVE -->
-
-                <button
-                    type="submit"
-                    class="btn btn-primary w-100">
-
-                   {% if order %}
 
 <button
-    type="submit"
-    class="btn btn-primary w-100">
 
-    ✏️ Update Order
+class="btn btn-primary w-100 mt-3"
+
+type="submit">
+
+Update Order
 
 </button>
 
-{% else %}
-
-<button
-    type="submit"
-    class="btn btn-primary w-100">
-
-    💾 Save Order
-
-</button>
-
-{% endif %}
-
-                </button>
-
-            </form>
-
-        </div>
-
-    </div>
 
 </div>
+
+</div>
+
+</div>
+
+</div>
+
+</form>
+
+</div>
+
+
+
+
+
+
+
 
 <script>
 
-function calculateTotal(){
+let items = {};
 
-    let total = 0;
+{% for category in categories %}
+{% for item in category.services.all %}
 
-    {% for category in categories %}
-        {% for item in category.serviceitem_set.all %}
+items[{{item.id}}] = {
 
-        let qty{{ item.id }} =
-            parseFloat(
-                document.getElementsByName(
-                    "item_{{ item.id }}"
-                )[0].value
-            ) || 0;
+    name:"{{ item.name|escapejs }}",
 
-        total += qty{{ item.id }} * {{ item.price }};
+    price:{{ item.price }},
 
-        {% endfor %}
-    {% endfor %}
+    category:"{{ category.name|escapejs }}"
 
-    document.getElementById(
-        "totalAmount"
-    ).innerText = total.toFixed(3);
+};
+
+{% endfor %}
+{% endfor %}
+
+
+
+function showCategory(id,btn){
+
+document.querySelectorAll(".category-section")
+
+.forEach(
+
+x=>x.style.display="none"
+
+);
+
+document.getElementById("cat-"+id)
+
+.style.display="block";
+
+
+document.querySelectorAll(
+
+"#catTabs .nav-link"
+
+)
+
+.forEach(
+
+x=>x.classList.remove("active")
+
+);
+
+btn.classList.add("active");
+
 }
+
+
 
 function increaseQty(id){
 
-    let input = document.getElementById(
-        "item_" + id
-    );
+let qty=document.getElementById(
 
-    input.value =
-        parseInt(input.value || 0)
-        + 1;
+"qty"+id
 
-    calculateTotal();
+);
+
+qty.value=parseInt(
+
+qty.value || 0
+
+)+1;
+
+updateItem(id);
 
 }
+
 
 
 function decreaseQty(id){
 
-    let input = document.getElementById(
-        "item_" + id
-    );
+let qty=document.getElementById(
 
-    let value =
-        parseInt(input.value || 0);
+"qty"+id
 
-    if(value > 0){
+);
 
-        input.value = value - 1;
+let value=parseInt(
 
-    }
+qty.value || 0
 
-    calculateTotal();
+);
+
+if(value>0){
+
+qty.value=value-1;
+
+updateItem(id);
 
 }
 
-document.addEventListener(
-    "DOMContentLoaded",
-    function(){
+}
 
-        let inputs = document.querySelectorAll(
-            "input[type='number']"
-        );
 
-        inputs.forEach(function(input){
 
-            input.addEventListener(
-                "input",
-                calculateTotal
-            );
+function updateItem(id){
 
-        });
-calculateTotal();
+let qty=parseInt(
 
-    }
+document.getElementById(
+
+"qty"+id
+
+).value || 0
+
 );
 
-</script>
-<script>
 
-document.getElementById("phone")
-.addEventListener("blur", function(){
+document.getElementById(
 
-    let phone = this.value;
+"badge"+id
 
-    if(phone === "")
-        return;
+).innerHTML=qty;
 
-    fetch(
-        "/find-customer/?phone=" + phone
-    )
-    .then(response => response.json())
-    .then(data => {
 
-        if(data.found){
+let card=document.getElementById(
 
-            document.getElementById(
-                "customer_name"
-            ).value = data.name;
+"card"+id
 
-        }
-        else{
+);
 
-            document.getElementById(
-                "customer_name"
-            ).value = "";
 
-        }
+if(qty>0){
 
-    });
+card.classList.add("active");
+
+}
+
+else{
+
+card.classList.remove("active");
+
+}
+
+
+renderSelected();
+
+}
+
+
+
+
+function renderSelected(){
+
+let html="";
+
+let total=0;
+
+let count=0;
+
+
+for(let id in items){
+
+let qty=parseInt(
+
+document.getElementById(
+
+"qty"+id
+
+).value || 0
+
+);
+
+
+if(qty>0){
+
+count++;
+
+let subtotal=
+
+qty*items[id].price;
+
+total+=subtotal;
+
+
+html += `
+
+<div class="selected-row">
+
+<div
+
+style="
+
+font-size:12px;
+
+color:gray;
+
+">
+
+${items[id].category}
+
+</div>
+
+
+<div
+
+class="d-flex
+
+justify-content-between
+
+align-items-center">
+
+<div>
+
+<b>
+
+${items[id].name}
+
+</b>
+
+<div
+
+style="
+
+font-size:13px;
+
+color:#666;
+
+">
+
+Qty : ${qty}
+
+</div>
+
+</div>
+
+
+<div>
+
+OMR
+
+${subtotal.toFixed(3)}
+
+</div>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+}
+
+
+if(count==0){
+
+html=
+
+`
+
+<div class="text-muted">
+
+No items selected
+
+</div>
+
+`;
+
+}
+
+
+document.getElementById(
+
+"selectedItems"
+
+).innerHTML=html;
+
+
+document.getElementById(
+
+"grandTotal"
+
+).innerHTML=
+
+total.toFixed(3);
+
+}
+
+
+
+document.addEventListener(
+
+"DOMContentLoaded",
+
+function(){
+
+
+for(let id in items){
+
+updateItem(id);
+
+}
+
 
 });
 
+
+
+document.getElementById("phone")
+
+.addEventListener("blur", function(){
+
+let phone=this.value;
+
+if(phone==="")
+
+return;
+
+
+fetch(
+
+"/find-customer/?phone="+phone
+
+)
+
+.then(
+
+response=>response.json()
+
+)
+
+.then(
+
+data=>{
+
+if(data.found){
+
+document.getElementById(
+
+"customer_name"
+
+).value=data.name;
+
+}
+
+else{
+
+document.getElementById(
+
+"customer_name"
+
+).value="";
+
+}
+
+});
+
+});
+
+
 </script>
+
+
+
 {% endblock %}
-</body>
-</html>
+
+
