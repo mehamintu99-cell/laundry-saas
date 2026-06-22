@@ -1818,7 +1818,7 @@ def add_staff(request):
 
         )
         log_activity(shop=shop,user=request.user,
-                     action='CREATE_STAFF',description=f'{Staff.full_name} ' f'({staff.role}) ' f'created.')
+                     action='CREATE_STAFF',description=f'{full_name}' f'({role}) ' f'created.')
 
 
         # Success message
