@@ -143,7 +143,7 @@ margin-top:20px;
 
 <h3 class="mb-3">
 
-✏️ Edit Order #{{ order.id }}
+✏️ Edit Order #{{ order.order_number }}
 
 </h3>
 
@@ -315,7 +315,9 @@ style="background:#f2f2f2;font-size:35px;">
 
 <div class="text-primary fw-bold">
 
-OMR {{ item.price }}
+{{ currency }}
+
+{{ item.price|floatformat:decimal_places }}
 
 </div>
 
@@ -436,11 +438,11 @@ Total
 
 <h4>
 
-OMR
+{{ currency }}
 
 <span id="grandTotal">
 
-0.000
+0
 
 </span>
 
@@ -480,7 +482,9 @@ Update Order
 
 
 <script>
+let decimalPlaces =
 
+{{ decimal_places }};
 let items = {};
 
 {% for category in categories %}
@@ -629,6 +633,7 @@ renderSelected();
 
 function renderSelected(){
 
+
 let html="";
 
 let total=0;
@@ -663,6 +668,8 @@ total+=subtotal;
 html += `
 
 <div class="selected-row">
+
+
 
 <div
 
@@ -714,13 +721,13 @@ Qty : ${qty}
 
 <div>
 
-OMR
+{{ currency }}
 
-${subtotal.toFixed(3)}
-
-</div>
+${subtotal.toFixed(decimalPlaces)}
 
 </div>
+
+</div> 
 
 </div>
 
@@ -761,7 +768,7 @@ document.getElementById(
 
 ).innerHTML=
 
-total.toFixed(3);
+total.toFixed(decimalPlaces);
 
 }
 

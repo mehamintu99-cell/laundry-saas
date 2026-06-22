@@ -49,6 +49,31 @@
 
     </div>
 
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Owner Name
+
+    </label>
+
+    <input
+
+        type="text"
+
+        name="full_name"
+
+        class="form-control"
+
+        required
+
+    >
+
+</div>
+
+
+
     <div class="mb-3">
 
         <label class="form-label">
@@ -133,29 +158,175 @@
 
     </div>
 
-    <div class="mb-3">
+    <!-- Country -->
 
-        <label class="form-label">
+<div class="mb-3">
 
-            Default Delivery Days
+    <label class="form-label">
 
-        </label>
+        Country
 
-        <input
+    </label>
 
-            type="number"
+    <select
 
-            name="default_delivery_days"
+        name="country"
 
-            class="form-control"
+        id="country"
 
-            value="2"
+        class="form-select"
 
-            min="1"
+        onchange="updateCurrency()"
 
-        >
+        required>
 
-    </div>
+        <option value="Oman" selected>
+
+            Oman
+
+        </option>
+
+        <option value="India">
+
+            India
+
+        </option>
+
+        <option value="UAE">
+
+            UAE
+
+        </option>
+
+        <option value="Saudi Arabia">
+
+            Saudi Arabia
+
+        </option>
+
+        <option value="Qatar">
+
+            Qatar
+
+        </option>
+
+        <option value="Bahrain">
+
+            Bahrain
+
+        </option>
+
+        <option value="Kuwait">
+
+            Kuwait
+
+        </option>
+
+    </select>
+
+</div>
+
+<!--country code -->
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        WhatsApp Country Code
+
+    </label>
+
+    <input
+
+        type="text"
+ss
+        name="whatsapp_country_code"
+
+        class="form-control"
+
+        value="968"
+
+        placeholder="968">
+
+</div>
+
+<!-- Currency -->
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Currency
+
+    </label>
+
+    <input
+
+        type="text"
+
+        name="currency"
+
+        id="currency"
+
+        class="form-control"
+
+        value="OMR"
+
+        readonly>
+
+</div>
+
+
+<!-- Decimal Places -->
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Decimal Places
+
+    </label>
+
+    <input
+
+        type="number"
+
+        name="decimal_places"
+
+        id="decimal_places"
+
+        class="form-control"
+
+        value="3"
+
+        readonly>
+
+</div>
+
+
+<!-- Default Delivery Days -->
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Default Delivery Days
+
+    </label>
+
+    <input
+
+        type="number"
+
+        name="default_delivery_days"
+
+        class="form-control"
+
+        value="2"
+
+        min="1">
+
+</div>
 
 
     <!-- Subscription Section -->
@@ -326,5 +497,87 @@
     </div>
 
 </div>
+<script>
 
+function updateCurrency(){
+
+    let country =
+
+        document.getElementById(
+
+            "country"
+
+        ).value;
+
+
+    let currency = "OMR";
+
+    let decimals = 3;
+
+
+    if(country=="India"){
+
+        currency="INR";
+
+        decimals=2;
+
+    }
+
+    else if(country=="UAE"){
+
+        currency="AED";
+
+        decimals=2;
+
+    }
+
+    else if(country=="Saudi Arabia"){
+
+        currency="SAR";
+
+        decimals=2;
+
+    }
+
+    else if(country=="Qatar"){
+
+        currency="QAR";
+
+        decimals=2;
+
+    }
+
+    else if(country=="Bahrain"){
+
+        currency="BHD";
+
+        decimals=3;
+
+    }
+
+    else if(country=="Kuwait"){
+
+        currency="KWD";
+
+        decimals=3;
+
+    }
+
+
+    document.getElementById(
+
+        "currency"
+
+    ).value = currency;
+
+
+    document.getElementById(
+
+        "decimal_places"
+
+    ).value = decimals;
+
+}
+
+</script>
 {% endblock %}

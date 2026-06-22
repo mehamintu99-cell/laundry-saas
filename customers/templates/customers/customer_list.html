@@ -50,6 +50,8 @@
             <tr>
                 <th>Name</th>
                 <th>Phone</th>
+<th>Outstanding</th>
+
             </tr>
 
         </thead>
@@ -65,6 +67,29 @@
     </a></td>
 
                 <td>{{ customer.phone }}</td>
+<td>
+
+{% if customer.outstanding > 0 %}
+
+<span class="text-danger fw-bold">
+
+{{ customer.outstanding|floatformat:decimal_places }}
+
+{{ currency }}
+
+</span>
+
+{% else %}
+
+<span class="text-success">
+
+Paid
+
+</span>
+
+{% endif %}
+
+</td>
 
             </tr>
 

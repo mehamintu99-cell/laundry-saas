@@ -1,5 +1,6 @@
 
 from django.shortcuts import render, redirect
+from .utils import get_current_shop
 from .models import Customer
 from services.models import ServiceItem
 from services.models import ServiceCategory, ServiceItem
@@ -9,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from datetime import date
 from django.contrib.auth.models import User
-from customers.models import Shop
+from customers.models import Shop,Staff
 from django.db.models import Sum
 from customers.models import Customer
 from django.http import JsonResponse
@@ -31,6 +32,9 @@ from urllib.parse import quote
 from django.db import transaction
 from customers.models import Subscription
 from services.default_services import create_default_services
+from .decorators import owner_required
+from customers.decorators import owner_required
+from activity.utils import log_activity
 
 
 
@@ -40,13 +44,18 @@ from services.default_services import create_default_services
 @login_required
 def dashboard(request):
 
-    shop = request.user.shop
-    total_orders = Order.objects.filter(shop=shop).count()
+    shop = get_current_shop(request)
+    
+    #total_orders = Order.objects.filter(shop=shop,is_deleted=False).count()
+    
+
+    open_orders = Order.objects.filter(shop=shop,is_deleted=False).exclude(status='picked',payment_status='paid').count()
     total_customers = Customer.objects.filter(shop=shop).count()
 
     pending_orders = Order.objects.filter(shop=shop,status='received').count()
     ready_orders = Order.objects.filter(shop=shop,status='ready').count()
-    overdue_orders = Order.objects.filter(shop=shop,delivery_date__lt=date.today()).exclude(status='picked').count()
+    overdue_orders = Order.objects.filter(
+        shop=shop,delivery_date__lt=date.today()).exclude(status='picked').count()
     today_revenue = Order.objects.filter(shop=shop,created_at__date=date.today()).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
     current_month = date.today().month
     current_year = date.today().year
@@ -56,12 +65,13 @@ def dashboard(request):
     today_orders = Order.objects.filter(shop=shop,delivery_date=date.today()).exclude(status='picked').count()
     today_date = date.today().strftime('%Y-%m-%d')
     due_today_orders = Order.objects.filter(
-        shop=request.user.shop,delivery_date=timezone.now().date()).select_related('customer').order_by('-id')[:5]
+        shop=get_current_shop(request),
+        delivery_date=timezone.now().date()).exclude(status='picked').select_related('customer').order_by('-id')[:5]
     month_start = date(date.today().year,date.today().month,1).strftime('%Y-%m-%d')
     unpaid_orders = Order.objects.filter(shop=shop).exclude(payment_status='paid')
     picked_orders = Order.objects.filter(shop=shop,status='picked').count()
     today_collections = Payment.objects.filter(
-    order__shop=request.user.shop,payment_date__date=timezone.now().date()).aggregate(total=Sum('amount'))['total'] or 0
+    order__shop=get_current_shop(request),payment_date__date=timezone.now().date()).aggregate(total=Sum('amount'))['total'] or 0
     for order in unpaid_orders:
         outstanding_amount += order.balance
 
@@ -69,7 +79,6 @@ def dashboard(request):
         request,
         'orders/dashboard.html',
         {
-            'total_orders': total_orders,
             'pending_orders': pending_orders,
             'ready_orders': ready_orders,
             'overdue_orders': overdue_orders,
@@ -84,6 +93,11 @@ def dashboard(request):
             'picked_orders': picked_orders,
             'today_collections': today_collections,
             'due_today_orders': due_today_orders,
+            'currency': get_current_shop(request).currency,
+
+            'decimal_places':get_current_shop(request).decimal_places,
+            'open_orders': open_orders
+            
         }
     )
 
@@ -91,11 +105,11 @@ def dashboard(request):
 @login_required
 def new_order(request):
 
-    shop = request.user.shop
+    shop = get_current_shop(request)
     customers = Customer.objects.filter(shop=shop)
     
     categories = ServiceCategory.objects.filter(shop=shop)
-    default_date = timezone.now().date() + timedelta(days=request.user.shop.default_delivery_days)
+    default_date = timezone.now().date() + timedelta(days=get_current_shop(request).default_delivery_days)
 
     if request.method == "POST":
 
@@ -103,15 +117,23 @@ def new_order(request):
         customer_name = request.POST.get("customer_name")
         delivery_date = request.POST.get('delivery_date') or default_date
         customer, created = Customer.objects.get_or_create(
-        shop=request.user.shop,
+        shop=get_current_shop(request),
         phone=phone,
         defaults={'name': customer_name})
         #delivery_date = request.POST.get('delivery_date')
-        
+        last_order = Order.objects.filter(shop=shop).order_by('-order_number').first()
+        if last_order:
+
+            next_order_number = (last_order.order_number + 1)
+
+        else:
+
+            next_order_number = 1
 
         order = Order.objects.create(
             shop=customer.shop,
             customer=customer,
+            order_number=next_order_number,
             delivery_date=delivery_date,
             status='received',
             total_amount=0
@@ -145,12 +167,17 @@ def new_order(request):
                     'customers': customers,
                     'categories': categories,
                     'default_date': default_date,
+                    'currency': get_current_shop(request).currency,
+
+                    'decimal_places':get_current_shop(request).decimal_places,
                     'error': 'Please select at least one service.'
                 }
             )
 
         order.total_amount = total
         order.save()
+        log_activity(shop=get_current_shop(request),user=request.user,
+                     action='CREATE_ORDER',description=f'Order #{order.order_number} created.')
 
         #return redirect(f'/order/{order.id}/')
         return redirect(f'/order/{order.id}/?new=1')
@@ -161,7 +188,10 @@ def new_order(request):
         {
             'customers': customers,
             'categories': categories,
-            'default_date': default_date
+            'default_date': default_date,
+            'currency': get_current_shop(request).currency,
+
+            'decimal_places':get_current_shop(request).decimal_places
         }
     )
 #@login_required
@@ -179,8 +209,9 @@ def new_order(request):
 @login_required
 def order_detail(request, order_id):
     
-    shop = request.user.shop
-    order = Order.objects.get(id=order_id,shop=shop)
+    shop = get_current_shop(request)
+    order = Order.objects.get(id=order_id,shop=shop,is_deleted=False)
+    currency = get_current_shop(request).currency
     is_new_order = request.GET.get('new') == '1'
     is_ready_order = request.GET.get('ready') == '1'
     items = OrderItem.objects.filter(order=order)
@@ -188,46 +219,36 @@ def order_detail(request, order_id):
     for item in items:
         item.line_total = item.quantity * item.price
     receipt_text = f"""
-{shop.name}
+🧺 {shop.name}
 
 Order Created Successfully
 
-Order No: {order.id}
-
-Customer: {order.customer.name}
-
-Phone: {order.customer.phone}
-
+🧾 Order No : {order.order_number}
+👤 Customer : {order.customer.name}
+📞 Phone    : {order.customer.phone}
+📅 Delivery : {order.delivery_date}
 --------------------------------
-
 Items:
 """
-
     for item in items:
 
         receipt_text += (
             f"\n{item.service.name}"
             f" x {item.quantity}"
-            f" = {item.line_total:.3f} OMR"
+            f" × {item.price:.3f}"
+            f" = {item.line_total:.3f} {currency}"
         )
 
     receipt_text += f"""
-
 --------------------------------
-
 Total Amount: {order.total_amount:.3f} OMR
-
-Delivery Date: {order.delivery_date}
-
 Thank you for choosing {shop.name}.
 """
     ready_text = f"""
-{shop.name}
+🧺 {shop.name}
 
 Dear {order.customer.name},
-
-Your order #{order.id} is now ready for collection.
-
+Your order #{order.order_number} is now ready for collection.
 Items:
 """
 
@@ -237,25 +258,19 @@ Items:
             f"\n"
             f"{item.service.name}"
             f" x {item.quantity}"
+            f" × {item.price:.3f}"
             f" = {item.line_total:.3f} OMR"
         )
 
     ready_text += f"""
-
 --------------------------------
-
 Total Amount:
-
 {order.total_amount:.3f} OMR
-
 Please visit our shop to collect your order.
-
-Thank you for choosing
-
-{shop.name}
+Thank you for choosing {shop.name}
 """
-    whatsapp_url = (f"https://web.whatsapp.com/send"f"?phone=968{order.customer.phone}"f"&text={quote(receipt_text)}")
-    ready_whatsapp_url = (f"https://web.whatsapp.com/send"f"?phone=968{order.customer.phone}"f"&text={quote(ready_text)}")
+    whatsapp_url = (f"https://web.whatsapp.com/send"f"?phone={shop.whatsapp_country_code}{order.customer.phone}"f"&text={quote(receipt_text)}")
+    ready_whatsapp_url =(f"https://web.whatsapp.com/send"f"?phone={shop.whatsapp_country_code}{order.customer.phone}"f"&text={quote(ready_text)}")
     return render(
         request,
         'orders/order_detail.html',
@@ -268,13 +283,15 @@ Thank you for choosing
             'is_new_order': is_new_order,
             'whatsapp_url': whatsapp_url,
             'is_ready_order': is_ready_order,
-            'ready_whatsapp_url': ready_whatsapp_url
+            'ready_whatsapp_url': ready_whatsapp_url,
+            'currency': get_current_shop(request).currency,
+            'decimal_places':get_current_shop(request).decimal_places
         }
     )
 @login_required
 def update_status(request, order_id, status):
 
-    shop = request.user.shop
+    shop = get_current_shop(request)
     order = Order.objects.get(id=order_id,shop=shop)
 
     order.status = status
@@ -288,6 +305,7 @@ def update_status(request, order_id, status):
 
             item.save()
     order.save()
+    log_activity(shop=shop,user=request.user,action='UPDATE_STATUS',description=f'Order #{order.order_number} status changed to ' f'"{status.upper()}".')
     if status == "ready":
         return redirect(f'/order/{order.id}/?ready=1')
 
@@ -298,19 +316,18 @@ def update_status(request, order_id, status):
 @login_required
 def orders_list(request):
 
-    shop = request.user.shop
+    shop = get_current_shop(request)
 
     search = request.GET.get('search', '')
 
-    orders = Order.objects.filter(
-        shop=shop
-    ).order_by('-id')
+    orders = Order.objects.filter(shop=shop,is_deleted=False).order_by('-id')
 
     if search:
 
         orders = orders.filter(
             Q(customer__name__icontains=search) |
-            Q(customer__phone__icontains=search)
+            Q(customer__phone__icontains=search)|
+            Q(order_number__icontains=search)
         )
 
     return render(
@@ -318,7 +335,9 @@ def orders_list(request):
         'orders/orders_list.html',
         {
             'orders': orders,
-            'search': search
+            'search': search,
+            'currency': get_current_shop(request).currency,
+            'decimal_places':get_current_shop(request).decimal_places
         }
     )
 @login_required
@@ -335,7 +354,7 @@ def customer_search(request):
 
             customer = Customer.objects.get(
                 phone=phone,
-                shop=request.user.shop
+                shop=get_current_shop(request)
             )
 
         except Customer.DoesNotExist:
@@ -359,7 +378,7 @@ def find_customer(request):
     try:
 
         customer = Customer.objects.get(
-            shop=request.user.shop,
+            shop=get_current_shop(request),
             phone=phone
         )
 
@@ -377,6 +396,7 @@ def find_customer(request):
 
 @login_required
 def reports(request):
+    shop = get_current_shop(request)
 
     export = request.GET.get('export')
 
@@ -388,13 +408,13 @@ def reports(request):
     customer_id = request.GET.get('customer')
 
     customers = Customer.objects.filter(
-        shop=request.user.shop
+        shop=get_current_shop(request)
     ).order_by('name')
 
     if from_date and to_date:
 
         report_items = OrderItem.objects.filter(
-            order__shop=request.user.shop,
+            order__shop=shop,
             order__created_at__date__range=[
                 from_date,
                 to_date
@@ -491,7 +511,7 @@ def receive_payment(request, order_id):
     order = get_object_or_404(
         Order,
         id=order_id,
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     if request.method == "POST":
@@ -499,6 +519,7 @@ def receive_payment(request, order_id):
         amount = Decimal(
             request.POST.get('amount', '0')
         )
+
         if amount > order.balance:
 
             return render(
@@ -506,9 +527,11 @@ def receive_payment(request, order_id):
                 'orders/receive_payment.html',
                 {
                     'order': order,
-                    'error': 'Payment cannot exceed outstanding balance.'
+                    'error':
+                    'Payment cannot exceed outstanding balance.'
                 }
             )
+
         if amount <= 0:
 
             return render(
@@ -516,12 +539,40 @@ def receive_payment(request, order_id):
                 'orders/receive_payment.html',
                 {
                     'order': order,
-                    'error': 'Payment amount must be greater than zero.'
+                    'error':
+                    'Payment amount must be greater than zero.'
                 }
             )
 
         order.amount_paid += amount
-        Payment.objects.create(order=order,amount=amount)
+
+        payment = Payment.objects.create(
+
+            order=order,
+
+            amount=amount
+
+        )
+
+        log_activity(
+
+            shop=get_current_shop(request),
+
+            user=request.user,
+
+            action='PAYMENT',
+
+            description=
+
+            f'Payment of '
+
+            f'{get_current_shop(request).currency} '
+
+            f'{payment.amount} '
+
+            f'received for Order #{order.order_number}'
+
+        )
 
         if order.amount_paid >= order.total_amount:
 
@@ -534,15 +585,29 @@ def receive_payment(request, order_id):
         order.save()
 
         return redirect(
+
             f'/order/{order.id}/'
+
         )
 
     return render(
+
         request,
+
         'orders/receive_payment.html',
+
         {
-            'order': order
+
+            'order': order,
+
+            'currency':
+            get_current_shop(request).currency,
+
+            'decimal_places':
+            get_current_shop(request).decimal_places
+
         }
+
     )
 @login_required
 def edit_notes(request, order_id):
@@ -550,7 +615,7 @@ def edit_notes(request, order_id):
     order = get_object_or_404(
         Order,
         id=order_id,
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     if request.method == "POST":
@@ -576,7 +641,7 @@ def edit_notes(request, order_id):
 @login_required
 def outstanding_payments(request):
 
-    shop = request.user.shop
+    shop = get_current_shop(request)
 
     orders = Order.objects.filter(
         shop=shop
@@ -603,7 +668,7 @@ def outstanding_payments(request):
 @login_required
 def customer_outstanding_report(request):
 
-    shop = request.user.shop
+    shop = get_current_shop(request)
 
     customers = Customer.objects.filter(
         shop=shop
@@ -639,13 +704,15 @@ def customer_outstanding_report(request):
         'orders/customer_outstanding_report.html',
         {
             'report': report,
-            'total_outstanding': total_outstanding
+            'total_outstanding': total_outstanding,
+            'decimal_places':get_current_shop(request).decimal_places,
+            'currency':get_current_shop(request).currency
         }
     )
 @login_required
 def overdue_orders(request):
 
-    shop = request.user.shop
+    shop = get_current_shop(request)
 
     orders = Order.objects.filter(
         shop=shop,
@@ -664,7 +731,7 @@ def overdue_orders(request):
 @login_required
 def orders_due_today(request):
 
-    shop = request.user.shop
+    shop = get_current_shop(request)
 
     orders = Order.objects.filter(
         shop=shop,
@@ -683,7 +750,7 @@ def orders_due_today(request):
 @login_required
 def ready_orders(request):
 
-    shop = request.user.shop
+    shop = get_current_shop(request)
 
     orders = Order.objects.filter(
         shop=shop,
@@ -700,7 +767,7 @@ def ready_orders(request):
 @login_required
 def pending_orders_view(request):
 
-    shop = request.user.shop
+    shop = get_current_shop(request)
 
     orders = Order.objects.filter(
         shop=shop,
@@ -725,7 +792,7 @@ def service_summary(request):
     if from_date and to_date:
 
         items = OrderItem.objects.filter(
-            order__shop=request.user.shop,
+            order__shop=get_current_shop(request),
             order__created_at__date__range=[
                 from_date,
                 to_date
@@ -765,7 +832,7 @@ def service_summary(request):
 def payment_report(request):
 
     payments = Payment.objects.filter(
-        order__shop=request.user.shop
+        order__shop=get_current_shop(request)
     ).select_related(
         'order',
         'order__customer'
@@ -813,9 +880,12 @@ def payment_report(request):
             'payments': payments,
             'total_collected': total_collected,
             'from_date': from_date,
-            'to_date': to_date
+            'to_date': to_date,
+            'decimal_places':get_current_shop(request).decimal_places,
+            'currency':get_current_shop(request).currency
         }
     )
+
 @login_required
 def daily_closing(request):
 
@@ -827,40 +897,40 @@ def daily_closing(request):
         selected_date = timezone.now().date()
 
     orders_received = Order.objects.filter(
-        shop=request.user.shop,
+        shop=get_current_shop(request),
         created_at__date=selected_date
     ).count()
 
     orders_ready = Order.objects.filter(
-        shop=request.user.shop,
+        shop=get_current_shop(request),
         status='ready',
         created_at__date=selected_date
     ).count()
 
     orders_picked = Order.objects.filter(
-        shop=request.user.shop,
+        shop=get_current_shop(request),
         status='picked',
         created_at__date=selected_date
     ).count()
 
     revenue_generated = Order.objects.filter(
-        shop=request.user.shop,
+        shop=get_current_shop(request),
         created_at__date=selected_date
     ).aggregate(
         total=Sum('total_amount')
     )['total'] or 0
 
     payments_collected = Payment.objects.filter(
-        order__shop=request.user.shop,
+        order__shop=get_current_shop(request),
         payment_date__date=selected_date
     ).aggregate(
         total=Sum('amount')
     )['total'] or 0
 
     outstanding_balance = Order.objects.filter(
-        shop=request.user.shop).aggregate(total=Sum('total_amount'))['total'] or 0
+        shop=get_current_shop(request)).aggregate(total=Sum('total_amount'))['total'] or 0
     total_paid = Order.objects.filter(
-        shop=request.user.shop).aggregate(total=Sum('amount_paid'))['total'] or 0
+        shop=get_current_shop(request)).aggregate(total=Sum('amount_paid'))['total'] or 0
     outstanding_balance = outstanding_balance - total_paid
 
     return render(
@@ -882,7 +952,7 @@ def partial_delivery(request, order_id):
     order = get_object_or_404(
         Order,
         id=order_id,
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     items = OrderItem.objects.filter(
@@ -922,6 +992,7 @@ def partial_delivery(request, order_id):
 
             order.status = 'picked'
             order.save()
+        log_activity(shop=get_current_shop(request),user=request.user,action='PARTIAL_DELIVERY',description=f'Partial delivery done for ' f'Order #{order.order_number}.')
 
         return redirect(
             f'/order/{order.id}/'
@@ -995,7 +1066,7 @@ def login_view(request):
 def expense_list(request):
 
     expenses = Expense.objects.filter(
-        shop=request.user.shop
+        shop=get_current_shop(request)
     ).order_by('-expense_date')
 
     if request.method == "POST":
@@ -1017,7 +1088,7 @@ def expense_list(request):
 
         Expense.objects.create(
 
-            shop=request.user.shop,
+            shop=get_current_shop(request),
 
             expense_date=request.POST.get(
                 'expense_date'
@@ -1049,9 +1120,12 @@ def delete_expense(request, expense_id):
     expense = get_object_or_404(
         Expense,
         id=expense_id,
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
+    expense_name = expense.description
 
+    log_activity(shop=get_current_shop(request),user=request.user,
+             action='DELETE_EXPENSE',description=f'Expense "{expense_name}" deleted.')
     expense.delete()
 
     return redirect('/expenses/')
@@ -1061,7 +1135,7 @@ def edit_expense(request, expense_id):
     expense = get_object_or_404(
         Expense,
         id=expense_id,
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     if request.method == "POST":
@@ -1083,6 +1157,8 @@ def edit_expense(request, expense_id):
         )
 
         expense.save()
+        log_activity(shop=get_current_shop(request),user=request.user,
+                     action='ADD_EXPENSE',description=f'Expense "{expense.description}" added.')
 
         return redirect('/expenses/')
 
@@ -1106,7 +1182,7 @@ def expense_report(request):
     if from_date and to_date:
 
         expenses = Expense.objects.filter(
-            shop=request.user.shop,
+            shop=get_current_shop(request),
             expense_date__range=[
                 from_date,
                 to_date
@@ -1128,6 +1204,7 @@ def expense_report(request):
             'to_date': to_date
         }
     )
+@owner_required
 @login_required
 def profit_report(request):
 
@@ -1144,7 +1221,7 @@ def profit_report(request):
     if from_date and to_date:
 
         revenue = Order.objects.filter(
-            shop=request.user.shop,
+            shop=get_current_shop(request),
             created_at__date__range=[
                 from_date,
                 to_date
@@ -1154,7 +1231,7 @@ def profit_report(request):
         )['total_amount__sum'] or 0
 
         expenses = Expense.objects.filter(
-            shop=request.user.shop,
+            shop=get_current_shop(request),
             expense_date__range=[
                 from_date,
                 to_date
@@ -1167,7 +1244,7 @@ def profit_report(request):
         outstanding = sum(
             order.balance
             for order in Order.objects.filter(
-                shop=request.user.shop,
+                shop=get_current_shop(request),
                 created_at__date__range=[
                     from_date,
                     to_date
@@ -1239,6 +1316,7 @@ def add_shop(request):
             )
 
         with transaction.atomic():
+            full_name = request.POST.get('full_name')
 
             user = User.objects.create_user(
 
@@ -1258,15 +1336,16 @@ def add_shop(request):
 
                 address=request.POST.get('address'),
 
-                default_delivery_days=int(
-
-                    request.POST.get(
-                        'default_delivery_days'
-                    ) or 2
-
-                )
+                default_delivery_days=int(request.POST.get('default_delivery_days') or 2),
+                country=request.POST.get('country'),
+                currency=request.POST.get('currency'),
+                decimal_places=request.POST.get('decimal_places'),
+                whatsapp_country_code=request.POST.get('whatsapp_country_code'),
 
             )
+
+            
+            Staff.objects.create(shop=shop,user=user,full_name=full_name,role='OWNER')
             
             create_default_services(shop)
 
@@ -1490,7 +1569,7 @@ def deactivate_shop(
 @login_required
 def edit_order(request, order_id):
 
-    shop = request.user.shop
+    shop = get_current_shop(request)
 
     order = Order.objects.get(
         id=order_id,
@@ -1572,6 +1651,9 @@ def edit_order(request, order_id):
         order.total_amount = total
 
         order.save()
+        log_activity(
+
+    shop=get_current_shop(request),user=request.user,action='EDIT_ORDER',description=f'Order #{order.id} edited.')
 
         return redirect(
             f'/order/{order.id}/'
@@ -1593,7 +1675,425 @@ def edit_order(request, order_id):
 
             'edit_mode': True,
 
-            'existing_items': existing_items
+            'existing_items': existing_items,
+            'currency': get_current_shop(request).currency,
+            'decimal_places':get_current_shop(request).decimal_places
+
+        }
+
+    )
+
+
+
+@login_required
+def add_staff(request):
+
+    # Shops for dropdown / display
+    if request.user.is_superuser:
+
+        shops = Shop.objects.all()
+
+    else:
+
+        shop = get_current_shop(request)
+
+        shops = [shop]
+
+    if request.method == 'POST':
+
+        full_name = request.POST.get('full_name')
+
+        username = request.POST.get('username')
+
+        password = request.POST.get('password')
+
+        role = request.POST.get('role')
+
+
+        # Owner can create STAFF only
+
+        if not request.user.is_superuser:
+
+            role = 'STAFF'
+
+
+        # Select shop
+
+        if request.user.is_superuser:
+
+            shop = Shop.objects.get(
+
+                id=request.POST.get('shop')
+
+            )
+
+        else:
+
+            shop = get_current_shop(request)
+
+
+        # Username validation
+
+        if User.objects.filter(
+
+            username=username
+
+        ).exists():
+
+            return render(
+
+                request,
+
+                'orders/add_staff.html',
+
+                {
+
+                    'shops': shops,
+
+                    'error':
+
+                    'Username already exists.'
+
+                }
+
+            )
+
+
+        # Only one owner per shop
+
+        if role == 'OWNER':
+
+            owner_exists = Staff.objects.filter(
+
+                shop=shop,
+
+                role='OWNER'
+
+            ).exists()
+
+
+            if owner_exists:
+
+                return render(
+
+                    request,
+
+                    'orders/add_staff.html',
+
+                    {
+
+                        'shops': shops,
+
+                        'error':
+
+                        'Owner already exists.'
+
+                    }
+
+                )
+
+
+        # Create Django User
+
+        user = User.objects.create_user(
+
+            username=username,
+
+            password=password
+
+        )
+
+
+        # Create Staff
+
+        Staff.objects.create(
+
+            shop=shop,
+
+            user=user,
+
+            full_name=full_name,
+
+            role=role
+
+        )
+        log_activity(shop=shop,user=request.user,
+                     action='CREATE_STAFF',description=f'{Staff.full_name} ' f'({staff.role}) ' f'created.')
+
+
+        # Success message
+
+        messages.success(
+
+            request,
+
+            f'{full_name} created successfully.'
+
+        )
+
+
+        return redirect('/staff/')
+
+
+    return render(
+
+        request,
+
+        'orders/add_staff.html',
+
+        {
+
+            'shops': shops
+
+        }
+
+    )
+    
+@login_required
+def staff_list(request):
+
+    if request.user.is_superuser:
+
+        staffs = Staff.objects.all()
+
+    else:
+
+        shop = get_current_shop(request)
+
+        staffs = Staff.objects.filter(
+
+            shop=shop
+
+        )
+
+    return render(
+    
+        request,
+
+        'orders/staff_list.html',
+
+        {
+
+            'staffs': staffs
+
+        }
+
+    )
+@login_required
+def edit_staff(request, staff_id):
+
+    staff = Staff.objects.get(
+
+        id=staff_id
+
+    )
+
+
+    # Owner cannot edit another shop's staff
+
+    if not request.user.is_superuser:
+
+        shop = get_current_shop(request)
+
+        if staff.shop != shop:
+
+            return redirect('/staff/')
+
+
+    if request.method == 'POST':
+
+        staff.full_name = request.POST.get(
+
+            'full_name'
+
+        )
+
+        staff.save()
+
+
+        password = request.POST.get(
+
+            'password'
+
+        )
+
+        if password:
+
+            staff.user.set_password(
+
+                password
+
+            )
+
+            staff.user.save()
+
+
+        messages.success(
+
+            request,
+
+            'Staff updated successfully.'
+
+        )
+
+
+        return redirect('/staff/')
+
+
+    return render(
+
+        request,
+
+        'orders/edit_staff.html',
+
+        {
+
+            'staff': staff
+
+        }
+
+    )
+@login_required
+def toggle_staff(request, staff_id):
+
+    staff = Staff.objects.get(
+
+        id=staff_id
+
+    )
+
+
+    if not request.user.is_superuser:
+
+        shop = get_current_shop(request)
+
+        if staff.shop != shop:
+
+            return redirect('/staff/')
+
+
+    staff.is_active = not staff.is_active
+
+    staff.save()
+
+
+    staff.user.is_active = staff.is_active
+
+    staff.user.save()
+
+
+    messages.success(
+
+        request,
+
+        'Status updated.'
+
+    )
+
+
+    return redirect('/staff/')
+
+@login_required
+@owner_required
+def delete_order(request, order_id):
+
+    order = get_object_or_404(
+
+        Order,
+
+        id=order_id,
+
+        shop=get_current_shop(request),
+
+        is_deleted=False
+
+    )
+
+    # Don't allow delete if payment exists
+
+    if Payment.objects.filter(
+
+        order=order
+
+    ).exists():
+
+        messages.error(
+
+            request,
+
+            'Order cannot be deleted because payments exist.'
+
+        )
+
+        return redirect(
+
+            f'/order/{order.id}/'
+
+        )
+
+
+    order.is_deleted = True
+
+    order.deleted_at = timezone.now()
+
+    order.deleted_by = request.user
+
+    order.save()
+
+
+    log_activity(
+
+        shop=get_current_shop(request),
+
+        user=request.user,
+
+        action='DELETE_ORDER',
+
+        description=
+
+        f'Order #{order.order_number} deleted.'
+
+    )
+
+
+    messages.success(
+
+        request,
+
+        'Order deleted successfully.'
+
+    )
+
+
+    return redirect(
+
+        '/orders/'
+
+    )
+@login_required
+def open_orders(request):
+
+    shop = get_current_shop(request)
+
+    orders = Order.objects.filter(
+        shop=shop,
+        is_deleted=False
+    ).exclude(
+        status='picked',
+        payment_status='paid'
+    ).order_by('-created_at')
+
+    return render(
+
+        request,
+
+        'orders/orders_list.html',
+
+        {
+
+            'orders': orders,
+
+            'title': 'Open Orders'
 
         }
 

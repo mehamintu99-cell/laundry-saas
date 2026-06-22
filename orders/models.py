@@ -1,6 +1,7 @@
 from django.db import models
 from customers.models import Shop, Customer
 from services.models import ServiceItem
+from django.conf import settings
 
 class Order(models.Model):
 
@@ -30,6 +31,29 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=20,default='unpaid')
 
     created_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(
+        default=False
+    )
+
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+    deleted_by = models.ForeignKey(
+
+        settings.AUTH_USER_MODEL,
+
+        on_delete=models.SET_NULL,
+
+        null=True,
+
+        blank=True,
+
+        related_name='deleted_orders'
+    )
+    order_number = models.PositiveIntegerField(default=1)
+
+    
     @property
     def balance(self):
         return self.total_amount - self.amount_paid

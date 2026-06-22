@@ -9,12 +9,14 @@
     <div class="card-body">
 
         <p>
-            Order #{{ order.id }}
+            Order {{ order.order_number }}
         </p>
 
         <p>
             Balance:
-            {{ order.balance }} OMR
+            {{ order.balance|floatformat:decimal_places }}
+
+{{ currency }}
         </p>
 {% if error %}
 

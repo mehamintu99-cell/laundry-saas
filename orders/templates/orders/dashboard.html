@@ -13,7 +13,7 @@
 
     transition:0.25s;
 
-    height:145px;
+    height:165px;
 
 }
 
@@ -279,7 +279,7 @@ href="/order/{{ order.id }}/"
 
 class="text-decoration-none fw-bold">
 
-#{{ order.id }}
+#{{ order.order_number }}
 
 </a>
 
@@ -292,9 +292,11 @@ class="text-decoration-none fw-bold">
 
             <div>
 
-                {{ order.total_amount|floatformat:3 }}
+                
+{{ order.total_amount|floatformat:decimal_places }}                 
+{{ currency }}
 
-                OMR
+
 
             </div>
 
@@ -401,11 +403,11 @@ Today's Sales<BR>مبيعات اليوم
 
 <div class="card-value">
 
-{{ today_revenue|floatformat:3 }}
+{{ today_revenue|floatformat:decimal_places }}
 
 </div>
 
-<small>OMR</small>
+<small>{{ currency }}</small>
 
 </div>
 
@@ -443,11 +445,11 @@ Cash Received Today<BR>النقد المستلم
 
 <div class="card-value">
 
-{{ today_collections|floatformat:3 }}
+{{ today_collections|floatformat:decimal_places }}
 
 </div>
 
-<small>OMR</small>
+<small>{{ currency }}</small>
 
 </div>
 
@@ -485,11 +487,11 @@ Customer Balance<BR>رصيد العملاء
 
 <div class="card-value">
 
-{{ outstanding_amount|floatformat:3 }}
+{{ outstanding_amount|floatformat:decimal_places }}
 
 </div>
 
-<small>OMR</small>
+<small>{{ currency }}</small>
 
 </div>
 
@@ -527,11 +529,11 @@ Monthly Sales<BR>المبيعات الشهرية
 
 <div class="card-value">
 
-{{ month_revenue|floatformat:3 }}
+{{ month_revenue|floatformat:decimal_places }}
 
 </div>
 
-<small>OMR</small>
+<small>{{ currency }}</small>
 
 </div>
 
@@ -553,37 +555,21 @@ Monthly Sales<BR>المبيعات الشهرية
 
     <div class="col-6 col-md-6 col-lg-3 mb-3">
 
-        <a href="/orders/"
+        <a href="/orders/open/"
            class="text-decoration-none">
-
             <div class="card dashboard-card bg-primary text-white shadow">
-
                 <div class="card-body text-center">
-
                     <div class="card-icon">
-
-                        📦
-
-                    </div>
-
+                        📦                    </div>
                     <div class="card-title">
-
-                        Total Orders<BR>إجمالي الطلبات
-
+                        Open Orders<BR>إجمالي الطلبات
                     </div>
-
                     <div class="card-value">
-
-                        {{ total_orders }}
-
+                        {{ open_orders }}
                     </div>
-
                 </div>
-
             </div>
-
         </a>
-
     </div>
 
 
@@ -685,7 +671,7 @@ Monthly Sales<BR>المبيعات الشهرية
 
                     <div class="card-title">
 
-                        Delivered<BR>تم التسليم
+                        Picked Up<BR>تم التسليم
 
                     </div>
 

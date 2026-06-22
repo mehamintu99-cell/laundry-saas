@@ -48,7 +48,7 @@ Generate Report
 <td>{{ expense.expense_date }}</td>
 <td>{{ expense.category }}</td>
 <td>{{ expense.description }}</td>
-<td>{{ expense.amount|floatformat:3 }}</td>
+<td>{{ expense.amount|floatformat:decimal_places }}</td>
 <td>
 
     <a href="/expense/edit/{{ expense.id }}/"
@@ -76,7 +76,7 @@ No expenses found
 <div class="alert alert-danger">
 
 <strong>Total Expenses:</strong>
-{{ total_expenses|floatformat:3 }} OMR
+{{ total_expenses|floatformat:decimal_places}} {{ currency }}
 
 </div>
 

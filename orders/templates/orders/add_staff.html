@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+
+
+
+
+
+{% block content %}
+
+
+<div class="container mt-4">
+
+<div class="card shadow">
+
+<div class="card-body">
+
+<h2 class="mb-4">
+
+Add Staff
+
+</h2>
+
+
+{% if error %}
+
+<div class="alert alert-danger">
+
+{{ error }}
+
+</div>
+
+{% endif %}
+
+
+<form method="POST">
+
+{% csrf_token %}
+
+
+<div class="mb-3">
+
+<label class="form-label">
+
+Shop
+
+</label>
+
+{% if user.is_superuser %}
+
+<select
+
+name="shop"
+
+class="form-select"
+
+required>
+
+{% for shop in shops %}
+
+<option
+
+value="{{ shop.id }}">
+
+{{ shop.name }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+{% else %}
+
+<input
+
+type="text"
+
+class="form-control"
+
+value="{{ shops.0.name }}"
+
+readonly>
+
+<input
+
+type="hidden"
+
+name="shop"
+
+value="{{ shops.0.id }}">
+
+{% endif %}
+
+</div>
+
+<div class="mb-3">
+<label class="form-label">
+Full Name
+</label>
+
+<input
+
+type="text"
+
+name="full_name"
+
+class="form-control"
+
+required>
+
+</div>
+
+
+
+<div class="mb-3">
+
+<label class="form-label">
+
+Username
+
+</label>
+
+<input
+
+type="text"
+
+name="username"
+
+class="form-control"
+
+required>
+
+</div>
+
+
+
+<div class="mb-3">
+
+<label class="form-label">
+
+Password
+
+</label>
+
+<input
+
+type="password"
+
+name="password"
+
+class="form-control"
+
+required>
+
+</div>
+
+
+
+<div class="mb-3">
+
+<label class="form-label">
+
+Role
+
+</label>
+
+{% if user.is_superuser %}
+
+<select
+
+name="role"
+
+class="form-select">
+
+<option value="STAFF">
+
+Staff
+
+</option>
+
+<option value="OWNER">
+
+Owner
+
+</option>
+
+</select>
+
+{% else %}
+
+<input
+
+type="text"
+
+class="form-control"
+
+value="Staff"
+
+readonly>
+
+<input
+
+type="hidden"
+
+name="role"
+
+value="STAFF">
+
+{% endif %}
+
+</div>
+
+
+
+<button
+
+type="submit"
+
+class="btn btn-success">
+
+Save
+
+</button>
+
+
+<a
+
+href="/"
+
+class="btn btn-secondary">
+
+Cancel
+
+</a>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+
+{% endblock %}

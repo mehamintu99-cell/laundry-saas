@@ -4,7 +4,9 @@ from django.contrib.auth.decorators import login_required
 from orders.models import Order
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
-
+from orders.utils import get_current_shop
+from customers.decorators import owner_required
+from activity.utils import log_activity
 
 @login_required
 def customer_list(request):
@@ -12,7 +14,7 @@ def customer_list(request):
     search = request.GET.get('search', '')
 
     customers = Customer.objects.filter(
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     if search:
@@ -20,27 +22,48 @@ def customer_list(request):
         customers = customers.filter(
             name__icontains=search
         ) | Customer.objects.filter(
-            shop=request.user.shop,
+            shop=get_current_shop(request),
             phone__icontains=search
         )
 
     customers = customers.order_by('name')
 
-    return render(
-        request,
-        'customers/customer_list.html',
-        {
-            'customers': customers,
-            'search': search
-        }
-    )
 
+    # MOVE THIS HERE
+
+    for customer in customers:
+
+        customer.outstanding = sum(
+
+            order.balance
+
+            for order in customer.order_set.all()
+
+            if order.balance > 0
+
+        )
+
+    return render(
+
+        request,
+
+        'customers/customer_list.html',
+
+        {
+
+            'customers': customers,
+
+            'search': search
+
+        }
+
+    )
 @login_required
 def add_customer(request):
 
     if request.method == "POST":
         phone = request.POST.get("phone")
-        existing_customer = Customer.objects.filter(shop=request.user.shop,phone=phone).first()
+        existing_customer = Customer.objects.filter(shop=get_current_shop(request),phone=phone).first()
 
         if existing_customer:
 
@@ -77,7 +100,7 @@ def add_customer(request):
             )
 
         Customer.objects.create(
-            shop=request.user.shop,
+            shop=get_current_shop(request),
             name=request.POST.get("name"),
             phone=request.POST.get("phone")
         )
@@ -94,7 +117,7 @@ def customer_detail(request, customer_id):
 
     customer = Customer.objects.get(
         id=customer_id,
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     orders = Order.objects.filter(
@@ -113,6 +136,7 @@ def customer_detail(request, customer_id):
         order.balance
         for order in orders
     )
+   
 
     return render(
         request,
@@ -128,9 +152,10 @@ def customer_detail(request, customer_id):
         }
     )
 @login_required
+@owner_required
 def shop_settings(request):
 
-    shop = request.user.shop
+    shop = get_current_shop(request)
 
     if request.method == "POST":
 
@@ -142,6 +167,7 @@ def shop_settings(request):
         shop.default_delivery_days = request.POST.get("default_delivery_days",3)
 
         shop.save()
+        log_activity(shop=shop,user=request.user,action='UPDATE_SETTINGS',description='Shop settings updated.')
         messages.success(request,"Settings saved successfully.")
         return redirect('/settings/')
 
@@ -158,7 +184,7 @@ def edit_customer(request, customer_id):
     customer = get_object_or_404(
         Customer,
         id=customer_id,
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     if request.method == "POST":
@@ -186,7 +212,7 @@ def edit_customer(request, customer_id):
             )
 
         existing_customer = Customer.objects.filter(
-            shop=request.user.shop,
+            shop=get_current_shop(request),
             phone=phone
         ).exclude(
             id=customer.id
@@ -219,3 +245,4 @@ def edit_customer(request, customer_id):
             'customer': customer
         }
     )
+

@@ -102,17 +102,17 @@
 
         <tr>
             <th>Today's Orders Value</th>
-            <td>{{ revenue_generated|floatformat:3 }} OMR</td>
+            <td>{{ revenue_generated|floatformat:decimal_places }} {{ currency }}</td>
         </tr>
 
         <tr>
             <th>Payments Collected Today</th>
-            <td>{{ payments_collected|floatformat:3 }} OMR</td>
+            <td>{{ payments_collected|floatformat:decimal_places }} {{ currency }}</td>
         </tr>
 
         <tr>
     <th>Current Outstanding Balance</th>
-    <td>{{ outstanding_balance|floatformat:3 }} OMR</td>
+    <td>{{ outstanding_balance|floatformat:decimal_places }} {{ currency }}</td>
 </tr>
 
     </table>

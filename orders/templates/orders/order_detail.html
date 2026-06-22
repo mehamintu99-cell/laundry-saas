@@ -4,11 +4,65 @@
 
 
 <style>
+@media print{
+
+    .navbar{
+
+        display:none !important;
+
+    }
+
+    .no-print{
+
+        display:none !important;
+
+    }
+
+}
     @media print {
         .no-print {
             display: none !important;
         }
     }
+
+.table{
+
+    font-size:13px;
+
+}
+
+.table th,
+.table td{
+
+    padding:4px 6px;
+
+    vertical-align:middle;
+
+}.print-title{
+
+    display:none;
+
+}
+
+@media print{
+
+    .screen-title{
+
+        display:none;
+
+    }
+
+    .print-title{
+
+        display:block;
+
+        text-align:center;
+
+    }
+
+}
+
+
 </style>
 
 <div class="container mt-4">
@@ -25,60 +79,171 @@
 
             <div class="text-center mb-4">
 
-                <h3>{{ shop.name }}</h3>
+                <div class="text-center mb-4">
 
-                {% if shop.phone %}
-                    <div>{{ shop.phone }}</div>
-                {% endif %}
+    <h3 class="fw-bold">
 
-                {% if shop.address %}
-                    <div>{{ shop.address }}</div>
-                {% endif %}
+        🧺 {{ shop.name }}
 
-            </div>
+    </h3>
+
+    {% if shop.phone %}
+
+    <div>
+
+        📞 {{ shop.phone }}
+
+    </div>
+
+    {% endif %}
+
+    {% if shop.address %}
+
+    <div class="text-muted">
+
+        {{ shop.address }}
+
+    </div>
+
+    {% endif %}
+
+    <hr>
+
+    <h6 class="screen-title">
+
+ORDER DETAILS
+
+</h6>
+
+<h6 class="print-title">
+
+LAUNDRY RECEIPT
+
+</h6>
+
+</div>
+
+                     </div>
 
             <hr>
 
             <!-- Order Details -->
 
-            <h2>Order #{{ order.id }}</h2>
+            <h5>Order #{{ order.order_number }}</h5>
+            <table class="table table-borderless">
 
-            <p>
-                <strong>Customer:</strong>
-                {{ order.customer.name }}
-            </p>
+<tr>
 
-            <p>
-                <strong>Phone:</strong>
-                {{ order.customer.phone }}
-            </p>
+<td width="35%">
 
-            <p>
-                <strong>Order Date:</strong>
-                {{ order.created_at|date:"d M Y" }}
-            </p>
+<b>Order No</b>
 
-            <p>
-                <strong>Delivery Date:</strong>
-                {{ order.delivery_date }}
-            </p>
+</td>
 
-            <p>
-                <strong>Status:</strong>
-                {{ order.get_status_display }}
-            </p>
+<td>
+
+#{{ order.order_number }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<b>Customer</b>
+
+</td>
+
+<td>
+
+{{ order.customer.name }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<b>Phone</b>
+
+</td>
+
+<td>
+
+{{ order.customer.phone }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<b>Order Date</b>
+
+</td>
+
+<td>
+
+{{ order.created_at|date:"d M Y" }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<b>Delivery Date</b>
+
+</td>
+
+<td>
+
+{{ order.delivery_date|date:"d M Y" }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<b>Status</b>
+
+</td>
+
+<td>
+
+<span class="badge bg-primary">
+
+{{ order.get_status_display }}
+
+</span>
+
+</td>
+
+</tr>
+
+</table>
+{% if order.notes %}
 <div class="alert alert-warning">
 
     <strong>Notes</strong><br>
 
-    {% if order.notes %}
+    
         {{ order.notes|linebreaks }}
-    {% else %}
-        No notes added
-    {% endif %}
+   
 
 </div>
-
+{% endif %}
             <hr>
 
             <!-- Payment Details -->
@@ -89,17 +254,23 @@
 
                 <tr>
                     <th>Total Amount</th>
-                    <td>{{ order.total_amount }} OMR</td>
+                    <td>{{ order.total_amount|floatformat:decimal_places }}
+
+{{ currency }}</td>
                 </tr>
 
                 <tr>
                     <th>Amount Paid</th>
-                    <td>{{ order.amount_paid }} OMR</td>
+                    <td>{{ order.amount_paid|floatformat:decimal_places }}
+
+{{ currency }} </td>
                 </tr>
 
                 <tr>
                     <th>Balance</th>
-                    <td>{{ order.balance }} OMR</td>
+                    <td>{{ order.balance|floatformat:decimal_places }}
+
+{{ currency }}</td>
                 </tr>
 
                 <tr>
@@ -143,7 +314,9 @@
 
             <td>
 
-                {{ payment.amount|floatformat:3 }} OMR
+                {{ payment.amount|floatformat:decimal_places }}
+
+{{ currency }}
 
             </td>
 
@@ -157,13 +330,13 @@
 <div class="alert alert-success">
 
     Total Received:
-    {{ order.amount_paid|floatformat:3 }} OMR
+    {{ order.amount_paid|floatformat:decimal_places }} {{ currency }}
 
 </div>
 
 {% else %}
 
-<div class="alert alert-warning">
+<div class="alert alert-warning no-print">
 
     No payments received yet.
 
@@ -246,13 +419,13 @@
 
                     <tr>
 
-                        <th>Category</th>
-                        <th>Service</th>
-                        <th>Qty</th>
-<th>Delivered</th>
-    <th>Pending</th>
-                        <th>Price</th>
-                        <th>Amount</th>
+                        <th style="width:15%">Category</th>
+                        <th style="width:22%">Service</th>
+                        <th style="width:8%">Qty</th>
+<th style="width:12%">Delivered</th>
+    <th style="width:12%">Pending</th>
+                        <th style="width:13%">Price</th>
+                        <th style="width:13%">Amount</th>
 
                     </tr>
 
@@ -306,7 +479,9 @@
             <h4 class="text-end">
 
                 Total:
-                {{ order.total_amount }} OMR
+                {{ order.total_amount|floatformat:decimal_places }}
+
+{{ currency }}
 
             </h4>
 
@@ -357,7 +532,7 @@
 
                 <p>
                     <strong>Order No:</strong>
-                    {{ order.id }}
+                    {{ order.order_number }}
                 </p>
                 <p>
                     <strong>Customer:</strong>
@@ -366,7 +541,10 @@
 
                 <p>
                     <strong>Total Amount:</strong>
-                    {{ order.total_amount }} OMR
+                    
+{{ order.total_amount|floatformat:decimal_places }}
+
+{{ currency }}
                 </p>
                 <hr>
                 <p>

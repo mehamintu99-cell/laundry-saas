@@ -49,7 +49,7 @@
 
                 <tr>
 
-                    <td>#{{ order.id }}</td>
+                    <td>#{{ order.order_number }}</td>
 
                     <td>{{ order.customer.name }}</td>
 
@@ -57,7 +57,9 @@
 
                     <td>{{ order.get_status_display }}</td>
 
-                    <td>{{ order.total_amount }} OMR</td>
+                    <td>{{ order.total_amount|floatformat:decimal_places }}
+
+{{ currency }}</td>
 
                     <td>
 

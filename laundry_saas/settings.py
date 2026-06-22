@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'customers',
     'orders',
     'services',
+    'activity',
 ]
 
 MIDDLEWARE = [
@@ -65,6 +66,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'customers.context_processors.shop_settings',
+                'orders.context_processors.staff_info',
+                'customers.context_processors.current_shop_info',
+            
             ],
         },
     },

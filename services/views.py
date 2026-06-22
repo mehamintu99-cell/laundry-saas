@@ -2,13 +2,14 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import ServiceCategory
 from .models import ServiceItem
+from orders.utils import get_current_shop
 
 # Create your views here.
 @login_required
 def category_list(request):
 
     categories = ServiceCategory.objects.filter(
-        shop=request.user.shop
+        shop=get_current_shop(request)
     ).order_by('name')
 
     if request.method == "POST":
@@ -30,7 +31,7 @@ def category_list(request):
             )
 
         existing = ServiceCategory.objects.filter(
-            shop=request.user.shop,
+            shop=get_current_shop(request),
             name__iexact=name
         ).exists()
 
@@ -46,7 +47,7 @@ def category_list(request):
             )
 
         ServiceCategory.objects.create(
-            shop=request.user.shop,
+            shop=get_current_shop(request),
             name=name
         )
 
@@ -64,7 +65,7 @@ def delete_category(request, category_id):
 
     category = ServiceCategory.objects.get(
         id=category_id,
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     category.delete()
@@ -74,7 +75,7 @@ def delete_category(request, category_id):
 def service_list(request):
 
     services = ServiceItem.objects.filter(
-        shop=request.user.shop
+        shop=get_current_shop(request)
     ).select_related(
         'category'
     ).order_by(
@@ -83,14 +84,14 @@ def service_list(request):
     )
 
     categories = ServiceCategory.objects.filter(
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     if request.method == "POST":
 
         ServiceItem.objects.create(
 
-            shop=request.user.shop,
+            shop=get_current_shop(request),
 
             category_id=request.POST.get(
                 'category'
@@ -121,7 +122,7 @@ def delete_service(request, service_id):
 
     service = ServiceItem.objects.get(
         id=service_id,
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     service.delete()
@@ -132,11 +133,11 @@ def edit_service(request, service_id):
 
     service = ServiceItem.objects.get(
         id=service_id,
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     categories = ServiceCategory.objects.filter(
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     if request.method == "POST":
@@ -182,7 +183,7 @@ def edit_category(request, category_id):
 
     category = ServiceCategory.objects.get(
         id=category_id,
-        shop=request.user.shop
+        shop=get_current_shop(request)
     )
 
     if request.method == "POST":

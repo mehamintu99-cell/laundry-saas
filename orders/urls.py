@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import find_customer
 from .views import logout_view
-from .views import dashboard, new_order, orders_list, order_detail,update_status,customer_search, reports,receive_payment,edit_notes,outstanding_payments,customer_outstanding_report,overdue_orders,orders_due_today,ready_orders,pending_orders_view,service_summary,payment_report,daily_closing,partial_delivery,login_view,expense_list,delete_expense,edit_expense,expense_report,profit_report,shop_list,add_shop,edit_shop,reset_shop_password,deactivate_shop,edit_order
+from .views import dashboard, new_order, orders_list, order_detail,update_status,customer_search, reports,receive_payment,edit_notes,outstanding_payments,customer_outstanding_report,overdue_orders,orders_due_today,ready_orders,pending_orders_view,service_summary,payment_report,daily_closing,partial_delivery,login_view,expense_list,delete_expense,edit_expense,expense_report,profit_report,shop_list,add_shop,edit_shop,reset_shop_password,deactivate_shop,edit_order,add_staff,staff_list,edit_staff,toggle_staff,delete_order,open_orders
 
 
 urlpatterns = [
@@ -141,6 +141,48 @@ urlpatterns = [
     'order/<int:order_id>/edit/',
     edit_order,
     name='edit_order'
+),
+    path(
+
+    'staff/add/',
+
+    add_staff,
+
+    name='add_staff'
+
+),
+    path(
+
+    'staff/',
+
+    staff_list,
+
+    name='staff_list'
+
+),
+    path(
+    'staff/<int:staff_id>/edit/',
+    edit_staff,
+    name='edit_staff'
+),
+    path(
+    'staff/<int:staff_id>/toggle/',
+    toggle_staff,
+    name='toggle_staff'
+),
+    path(
+
+    'order/<int:order_id>/delete/',
+
+    delete_order,
+
+    name='delete_order'
+
+),
+    path(
+    'orders/open/',
+    open_orders,
+    name='open_orders'
 ),
     
     

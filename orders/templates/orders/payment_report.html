@@ -64,7 +64,7 @@
             Total Collected:
         </strong>
 
-        {{ total_collected|floatformat:3 }} OMR
+        {{ total_collected|floatformat:decimal_places }} {{ currency }}
 
     </div>
 
@@ -113,7 +113,7 @@
 
                 <td>
 
-                    {{ payment.amount|floatformat:3 }}
+                    {{ payment.amount|floatformat:decimal_places }}
 
                 </td>
 

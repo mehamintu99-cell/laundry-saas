@@ -4,7 +4,7 @@
 
 <div class="container mt-4">
 
-```
+
 <h2>{{ customer.name }}</h2>
 
 <p>
@@ -18,11 +18,18 @@
 
 </a>
 
-<a href="https://web.whatsapp.com/send?phone=968{{ customer.phone }}"
-   target="_blank"
-   class="btn btn-success mb-3 whatsapp-link">
 
-    📱 WhatsApp Customer
+
+<a
+
+href="https://web.whatsapp.com/send?phone={{ current_shop.whatsapp_country_code }}{{ customer.phone }}&text=Dear%20{{ customer.name }},
+%0AYou%20have%20an%20outstanding%20amount%20of%20{{ outstanding_amount }}%20{{ currency }}.%0APlease%20visit%20our%20shop.%0A%0AThank%20you."
+
+target="_blank"
+
+class="btn btn-success mb-3 whatsapp-link">
+
+📱 WhatsApp Customer
 
 </a>
 <p>
@@ -37,59 +44,61 @@
 
 <hr>
 
-<div class="row">
+<div class="row g-4 align-items-stretch">
 
     <div class="col-md-4">
 
         <div class="card shadow-sm">
 
-            <div class="card-body text-center">
+            <div class="card-body h-100 text-center">
 
                 <h5>Total Orders</h5>
 
-                <h2>{{ total_orders }}</h2>
+                <h2>{{ total_orders }}</h2><small>orders</small>
 
             </div>
 
         </div>
 
     </div>
+
 
     <div class="col-md-4">
 
         <div class="card shadow-sm">
 
-            <div class="card-body text-center">
+            <div class="card-body h-100 text-center">
 
                 <h5>Total Spent</h5>
 
-                <h2>{{ total_spent|floatformat:3 }}</h2>
+                <h2>{{ total_spent|floatformat:decimal_places }}</h2>
 
-                <small>OMR</small>
+                <small>{{currency}}</small>
 
             </div>
 
         </div>
-
-    </div>
+</div>
+   
 
     <div class="col-md-4">
 
         <div class="card border-danger shadow-sm">
 
-            <div class="card-body text-center">
+            <div class="card-body h-100 text-center">
 
                 <h5>Outstanding</h5>
 
-                <h2>{{ outstanding_amount|floatformat:3 }}</h2>
+                <h2>{{ outstanding_amount|floatformat:decimal_places }}</h2>
 
-                <small>OMR</small>
+                <small>{{currency}}</small>
 
             </div>
 
         </div>
 
     </div>
+
 
 </div>
 
@@ -124,7 +133,7 @@
 
                 <a href="/order/{{ order.id }}/">
 
-                    #{{ order.id }}
+                    #{{ order.order_number }}
 
                 </a>
 
@@ -161,12 +170,12 @@
 
             <td>
 
-                {{ order.total_amount|floatformat:3 }}
+                {{ order.total_amount|floatformat:decimal_places }}
 
             </td>
     <td>
 
-        {{ order.balance|floatformat:3 }}
+        {{ order.balance|floatformat:decimal_places }}
 
     </td>
 
@@ -202,7 +211,7 @@
     ← Back
 
 </a>
-```
+
 
 </div>
 <script>

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>
+
+        Activity Log
+
+    </h2>
+
+    <table class="table table-bordered table-hover">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>
+
+                    Date & Time
+
+                </th>
+
+                <th>
+
+                    User
+
+                </th>
+
+                <th>
+
+                    Action
+
+                </th>
+
+                <th>
+
+                    Description
+
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for activity in activities %}
+
+            <tr>
+
+                <td>
+
+                    {{ activity.created_at|date:"d-M-Y h:i A" }}
+
+                </td>
+
+                <td>
+
+    <strong>
+
+        {{ activity.display_name }}
+
+    </strong>
+
+    <br>
+
+    <small class="text-muted">
+
+        ({{ activity.display_role }})
+
+    </small>
+
+</td>
+
+                <td>
+
+                    <span class="badge bg-primary">
+
+                        {{ activity.action }}
+
+                    </span>
+
+                </td>
+
+                <td>
+
+                    {{ activity.description }}
+
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="4">
+
+                    No activities found.
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

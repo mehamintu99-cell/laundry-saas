@@ -25,9 +25,11 @@
             <tr>
 
                 <td>
-                    <a href="/customer-search/?phone={{ row.customer.phone }}">
-                        {{ row.customer.name }}
-                    </a>
+                    <a href="/customer/{{row.customer.id }}/">
+        {{ row.customer.name }}
+    </a>
+
+   
                 </td>
 
                 <td>
@@ -35,7 +37,7 @@
                 </td>
 
                 <td>
-                    {{ row.outstanding|floatformat:3 }}
+                    {{ row.outstanding|floatformat:decimal_places }}
                 </td>
 
             </tr>
@@ -62,7 +64,7 @@
             Total Outstanding:
         </strong>
 
-        {{ total_outstanding|floatformat:3 }} OMR
+        {{ total_outstanding|floatformat:decimal_places }} {{ currency }}
 
     </div>
 

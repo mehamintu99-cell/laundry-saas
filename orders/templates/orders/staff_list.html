@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+<h2>
+
+👥 Staffs
+
+</h2>
+
+
+<a
+
+href="/staff/add/"
+
+class="btn btn-primary">
+
+➕ Add Staff
+
+</a>
+
+</div>
+
+
+
+<div class="card shadow">
+
+<div class="card-body p-0">
+
+
+<table class="table table-hover mb-0">
+
+<thead>
+
+<tr>
+
+<th>
+
+Full Name
+
+</th>
+
+<th>
+
+Username
+
+</th>
+
+<th>
+
+Shop
+
+</th>
+
+<th>
+
+Role
+
+</th>
+
+<th>
+
+Status
+
+</th>
+<th>
+
+Actions
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for s in staffs %}
+
+<tr>
+
+<td>
+
+{{ s.full_name }}
+
+</td>
+
+<td>
+
+{{ s.user.username }}
+
+</td>
+
+<td>
+
+{{ s.shop.name }}
+
+</td>
+
+<td>
+
+{% if s.role == 'OWNER' %}
+
+<span class="badge bg-success">
+
+OWNER
+
+</span>
+
+{% else %}
+
+<span class="badge bg-primary">
+
+STAFF
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if s.is_active %}
+
+<span class="badge bg-success">
+
+Active
+
+</span>
+
+{% else %}
+
+<span class="badge bg-danger">
+
+Inactive
+
+</span>
+
+{% endif %}
+
+</td>
+
+
+<td>
+
+<a
+
+href="/staff/{{ s.id }}/edit/"
+
+class="btn btn-sm btn-primary">
+
+Edit
+
+</a>
+
+
+<button
+
+type="button"
+
+class="btn btn-sm {% if s.is_active %}btn-danger{% else %}btn-success{% endif %}"
+
+data-bs-toggle="modal"
+
+data-bs-target="#confirmModal"
+
+data-url="/staff/{{ s.id }}/toggle/"
+
+data-name="{{ s.full_name }}"
+
+data-action="{% if s.is_active %}Deactivate{% else %}Activate{% endif %}"
+
+onclick="setModalData(this)">
+
+{% if s.is_active %}
+
+Deactivate
+
+{% else %}
+
+Activate
+
+{% endif %}
+
+</button>
+
+</td>
+
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="5">
+
+No staff found.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+<!-- Confirm Modal -->
+
+<div
+
+class="modal fade"
+
+id="confirmModal"
+
+tabindex="-1">
+
+<div class="modal-dialog">
+
+<div class="modal-content">
+
+
+<div class="modal-header">
+
+<h5 class="modal-title">
+
+Confirmation
+
+</h5>
+
+<button
+
+type="button"
+
+class="btn-close"
+
+data-bs-dismiss="modal">
+
+</button>
+
+</div>
+
+
+<div class="modal-body">
+
+<p id="modalText">
+
+</p>
+
+</div>
+
+
+<div class="modal-footer">
+
+<button
+
+type="button"
+
+class="btn btn-secondary" data-bs-dismiss="modal">
+
+Cancel
+
+</button>
+
+
+<a
+
+id="confirmBtn"
+
+href="#"
+
+class="btn btn-danger">
+
+Confirm
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function setModalData(button){
+
+    let url = button.getAttribute("data-url");
+
+    let name = button.getAttribute("data-name");
+
+    let action = button.getAttribute("data-action");
+
+
+    document.getElementById("modalText").innerHTML =
+
+        "Are you sure you want to "
+
+        + action.toLowerCase()
+
+        + " <strong>"
+
+        + name
+
+        + "</strong>?";
+
+
+    document.getElementById("confirmBtn").href = url;
+
+
+    if(action=="Deactivate"){
+
+        document.getElementById(
+
+            "confirmBtn"
+
+        ).className = "btn btn-danger";
+
+    }
+
+    else{
+
+        document.getElementById(
+
+            "confirmBtn"
+
+        ).className = "btn btn-success";
+
+    }
+
+}
+
+</script>
+{% endblock %}
